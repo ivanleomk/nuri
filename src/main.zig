@@ -1,4 +1,6 @@
 const std = @import("std");
+const parser = @import("parser.zig");
+const generator = @import("generator.zig");
 
 const Command = enum {
     init,
@@ -84,10 +86,8 @@ fn cmdInit(init: std.process.Init, name: []const u8) !void {
     
     std.debug.print("Creating project: {s}\n", .{name});
 
-    // Get current working directory
     const cwd = std.Io.Dir.cwd();
     
-    // Create project directory
     cwd.createDir(io, name, .default_dir) catch |err| {
         if (err == error.PathAlreadyExists) {
             std.debug.print("Error: Directory '{s}' already exists\n", .{name});
@@ -99,7 +99,6 @@ fn cmdInit(init: std.process.Init, name: []const u8) !void {
     const project_path = try cwd.realPathFileAlloc(io, name, allocator);
     defer allocator.free(project_path);
 
-    // Create directories
     const content_dir = try std.fs.path.join(allocator, &.{ project_path, "content" });
     defer allocator.free(content_dir);
     try cwd.createDir(io, content_dir, .default_dir);
@@ -112,7 +111,6 @@ fn cmdInit(init: std.process.Init, name: []const u8) !void {
     defer allocator.free(public_dir);
     try cwd.createDir(io, public_dir, .default_dir);
 
-    // Create sample content
     const sample_md =
         \\---
         \\title: Home
@@ -120,7 +118,9 @@ fn cmdInit(init: std.process.Init, name: []const u8) !void {
         \\
         \\# Welcome to Nuri
         \\
-        \\This is your first page.
+        \\This is your first page with **bold** and *italic* text.
+        \\
+        \\Check out [this link](./about.md).
         \\
     ;
 
@@ -133,7 +133,6 @@ fn cmdInit(init: std.process.Init, name: []const u8) !void {
         .flags = .{},
     });
 
-    // Create nuri.config.json
     const config =
         \\{
         \\  "title": "My Nuri Site",
@@ -165,7 +164,6 @@ fn cmdBuild(init: std.process.Init) !void {
     const io = init.io;
     const allocator = init.gpa;
     
-    // Check for content directory
     const cwd = std.Io.Dir.cwd();
     
     var content_dir = cwd.openDir(io, "content", .{ .iterate = true }) catch |err| {
@@ -177,7 +175,6 @@ fn cmdBuild(init: std.process.Init) !void {
     };
     defer content_dir.close(io);
 
-    // Ensure src/app directory exists
     cwd.createDirPath(io, "src/app") catch |err| {
         if (err != error.PathAlreadyExists) {
             return err;
@@ -209,7 +206,7 @@ fn cmdBuild(init: std.process.Init) !void {
         };
         defer allocator.free(output_path);
 
-        try processMarkdownFile(io, allocator, content_path, output_path);
+        try processMarkdownFile(init, content_path, output_path);
         file_count += 1;
         std.debug.print("  ✓ {s} → {s}\n", .{ entry.path, output_path });
     }
@@ -221,31 +218,29 @@ fn cmdBuild(init: std.process.Init) !void {
     }
 }
 
-fn processMarkdownFile(io: std.Io, allocator: std.mem.Allocator, input_path: []const u8, output_path: []const u8) !void {
+fn processMarkdownFile(init: std.process.Init, input_path: []const u8, output_path: []const u8) !void {
+    const io = init.io;
+    const allocator = init.gpa;
+    
     const cwd = std.Io.Dir.cwd();
     
+    // Read markdown file
     const content = try cwd.readFileAlloc(io, input_path, allocator, .unlimited);
     defer allocator.free(content);
 
-    // Generate output
+    // Parse markdown
+    var doc = try parser.parse(allocator, content);
+    defer doc.deinit(allocator);
+
+    // Generate merjs code
+    const output = try generator.generate(allocator, doc);
+    defer allocator.free(output);
+
+    // Ensure output directory exists
     const output_dir = std.fs.path.dirname(output_path) orelse return error.InvalidPath;
     try cwd.createDirPath(io, output_dir);
 
-    // TODO: Parse markdown and convert to merjs AST
-    // For now, just create a placeholder output
-    const output = 
-        \\pub const meta = .{
-        \\    .title = "Page",
-        \\};
-        \\
-        \\pub fn render() !mer.Node {
-        \\    return mer.html(.{}, .{
-        \\        mer.h1(.{}, "Generated Page"),
-        \\    });
-        \\}
-        \\
-    ;
-
+    // Write output file
     try cwd.writeFile(io, .{
         .sub_path = output_path,
         .data = output,
@@ -260,12 +255,10 @@ fn cmdDev(init: std.process.Init) !void {
     std.debug.print("Starting development server...\n", .{});
     std.debug.print("Watching content/ directory for changes...\n\n", .{});
 
-    // Initial build
     try cmdBuild(init);
 
     std.debug.print("\nWatching for changes (Press Ctrl+C to stop)\n", .{});
 
-    // Simple polling-based watcher
     var last_mtimes = std.StringHashMap(std.Io.Timestamp).init(allocator);
     defer {
         var it = last_mtimes.keyIterator();
@@ -275,7 +268,6 @@ fn cmdDev(init: std.process.Init) !void {
         last_mtimes.deinit();
     }
 
-    // Initialize with current mtimes
     try scanDirectory(io, allocator, "content", &last_mtimes);
 
     while (true) {
@@ -292,7 +284,6 @@ fn cmdDev(init: std.process.Init) !void {
 
         try scanDirectory(io, allocator, "content", &current_mtimes);
 
-        // Check for changes
         var changed = false;
         var it = current_mtimes.iterator();
         while (it.next()) |entry| {
@@ -313,7 +304,6 @@ fn cmdDev(init: std.process.Init) !void {
             };
             std.debug.print("\nWatching for changes (Press Ctrl+C to stop)\n", .{});
 
-            // Update last_mtimes
             var old_it = last_mtimes.keyIterator();
             while (old_it.next()) |key| {
                 allocator.free(key.*);

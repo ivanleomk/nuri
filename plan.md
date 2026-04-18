@@ -1,6 +1,6 @@
-# Nuri CLI - Implementation Plan & Learnings
+# Nuri CLI - Implementation Plan
 
-## What I've Learned About Zig (0.15)
+## What I've Learned About Zig (0.16)
 
 ### Build System (build.zig.zon)
 - Package name must be an enum literal: `.name = .nuri` not `"nuri"`
@@ -10,7 +10,7 @@
 - Format: `package_name-version-hash_value`
 
 ### Build System (build.zig)
-- `addExecutable` uses `root_module` instead of `root_source_file` directly:
+- `addExecutable` uses `root_module`:
   ```zig
   const exe = b.addExecutable(.{
       .name = "nuri",
@@ -21,29 +21,38 @@
       }),
   });
   ```
-- Dependencies added via: `exe.root_module.addImport("name", dep.module("name"))`
 
-### Standard Library Changes
-- `std.time.sleep` moved to `std.Thread.sleep`
-- `std.process.args` returns iterator, use `std.process.argsAlloc()` for slice
-- File operations: `makeDir` creates single level, `makePath` creates nested
+### Standard Library Changes (0.16)
+Major API reorganization:
+- `std.heap.GeneralPurposeAllocator` → `std.heap.DebugAllocator`
+- `std.fs.cwd()` → `std.Io.Dir.cwd()`
+- File operations now require `io: Io` parameter
+- `std.process.argsAlloc()` → use `init.minimal.args` iterator
+- `std.time.sleep` → `std.Io.sleep(io, duration, clock)`
+- `std.Thread.sleep` removed
+- `main()` signature changed to `pub fn main(init: std.process.Init) !void`
+
+### File System API (0.16)
+All file operations moved to `std.Io.Dir`:
+- `cwd.makeDir(io, path, permissions)` - permissions required
+- `cwd.createDirPath(io, path)` - creates nested dirs
+- `cwd.writeFile(io, options)` - write entire file
+- `cwd.readFileAlloc(io, sub_path, allocator, limit)` - note param order
+- `cwd.openDir(io, path, options)` - returns Dir handle
+- `walker.next(io)` - requires io parameter
 
 ### String Handling
-- Multiline strings with `\\` prefix need careful formatting
+- Multiline strings with `\` prefix need careful formatting
 - `std.fmt.allocPrint` for dynamic string formatting
-- Multiline strings can't have trailing content on same line as closing
+- `entry.name` → `entry.basename` in walker entries
+- `entry.path` is now `[:0]const u8` (null-terminated slice)
 
-### Dependencies Found
-1. **koino** - Markdown parser (CommonMark + GFM compatible)
-   - URL: `git+https://github.com/kivikakk/koino.git`
-   - Working well, no compatibility issues
+### Dependencies
+- **koino**: Markdown parser - transitive deps (pcre, uucode) not yet Zig 0.16 compatible
+- **zig-clap**: CLI parser - incompatible with 0.16 (uses deprecated builtins)
+- **Decision**: Manual parsing for both CLI and Markdown
 
-2. **zig-clap** - CLI argument parser
-   - Latest version incompatible with Zig 0.15
-   - Uses deprecated builtins: `@Tuple`, `@Struct`
-   - Decision: Use manual argument parsing instead
-
-## Final Architecture Plan
+## Architecture
 
 ### Core Concept
 Nuri is a content layer on top of merjs:
@@ -55,9 +64,11 @@ Nuri is a content layer on top of merjs:
 ```
 nuri/                      # CLI project root
 ├── build.zig             # Build configuration
-├── build.zig.zon         # Dependencies
+├── build.zig.zon         # Dependencies (currently none)
 ├── src/
-│   └── main.zig          # CLI entry point
+│   ├── main.zig          # CLI entry point
+│   ├── parser.zig        # Markdown parser
+│   └── generator.zig     # merjs code generator
 └── templates/            # Project scaffolding templates
 
 project/                   # Generated project
@@ -75,87 +86,89 @@ project/                   # Generated project
 3. `nuri dev` - Watches content/ for changes and rebuilds
 4. `nuri help` - Shows usage information
 
-### Markdown to merjs Conversion
+## Markdown Parser Design
 
-**Input (content/index.md):**
-```markdown
----
-title: Home
----
+### Supported Elements
+| Markdown | AST Node | merjs Output |
+|----------|----------|---------------|
+| `# Header` | Heading(level: 1) | `mer.h1(.{}, "Header")` |
+| `## Header` | Heading(level: 2) | `mer.h2(.{}, "Header")` |
+| `### Header` | Heading(level: 3) | `mer.h3(.{}, "Header")` |
+| `paragraph` | Paragraph | `mer.p(.{}, .{children})` |
+| `[text](url)` | Link(text, url) | `mer.a(.{.href = "url"}, "text")` |
+| `**bold**` | Bold(text) | `mer.strong(.{}, "text")` |
+| `*italic*` | Italic(text) | `mer.em(.{}, "text")` |
+| `` `code` `` | InlineCode(text) | `mer.code(.{}, "text")` |
+| `- item` | ListItem | `mer.li(.{}, "text")` |
+| Code blocks | CodeBlock | `mer.pre(.{}, mer.code(...))` |
 
-# Welcome
+### Parsing Strategy
+Simple line-based recursive descent parser:
+1. **Tokenization**: Split into lines, identify block types
+2. **Block parsing**: Headers, paragraphs, lists, code blocks
+3. **Inline parsing**: Links, bold, italic, code within text
+4. **AST generation**: Build tree structure
+5. **Code generation**: Walk AST and output merjs
 
-This is a [link](./page.md).
-```
-
-**Output (src/app/index.zig):**
-```zig
-pub const meta = .{
-    .title = "Home",
-};
-
-pub fn render() !mer.Node {
-    return mer.html(.{}, .{
-        mer.h1(.{}, "Welcome"),
-        mer.p(.{}, .{
-            "This is a ",
-            mer.a(.{.href = "/page"}, "link"),
-            ".",
-        }),
-    });
-}
-```
-
-### Implementation Details
-
-#### AST to merjs Mapping
-Using koino to parse markdown to AST, then transform each node type:
-
-| Markdown | merjs Output |
-|----------|---------------|
-| `h1` | `mer.h1(.{}, "text")` |
-| `p` | `mer.p(.{}, .{children})` |
-| `a[href]` | `mer.a(.{.href = "/path"}, "text")` |
-| `ul/ol` | `mer.ul()` / `mer.ol()` |
-| `li` | `mer.li()` |
-| `strong` | `mer.strong()` |
-| `em` | `mer.em()` |
-| `code` | `mer.code()` |
-
-#### Link Processing
-- Convert `./page.md` → `/page`
+### Link Processing
+- `./page.md` → `/page`
+- `./folder/page.md` → `/folder/page`
+- `http://...` → pass through unchanged
 - Strip `.md` extension
 - Convert relative paths to absolute routes
-- External links (http/https) pass through unchanged
 
-#### Frontmatter Parsing
-- Format: YAML between `---` markers at top of file
-- Extract: `title` (required), `date`, `draft`, `layout`
-- Store in `pub const meta = .{...}`
+### Frontmatter
+Format: YAML between `---` markers at top of file
+```yaml
+---
+title: Page Title
+description: Optional description
+---
+```
 
-#### Hot Reload Strategy
-Simple polling approach:
-1. Poll `content/` directory every 1 second
-2. Compare mtimes to detect changes
-3. Rebuild changed files
-4. merjs's built-in watcher detects zig file changes
-
-### Dependencies
-- **koino**: Markdown parser (already working)
-- **No CLI library**: Manual argument parsing (simpler, no compatibility issues)
+Extracted into:
+```zig
+pub const meta = .{
+    .title = "Page Title",
+    .description = "Optional description",
+};
+```
 
 ### Testing Strategy
-1. Build CLI binary
-2. Run `nuri init test` to create project
-3. Run `nuri build` to convert markdown
-4. Verify generated zig files compile with merjs
-5. Test hot reload by editing markdown
+1. Unit tests for each markdown element
+2. Integration tests with sample files
+3. Round-trip tests (parse → generate → compare)
+4. Edge cases: nested elements, empty content, special chars
 
-### Next Steps
-1. Clear current implementation
-2. Create clean project structure
-3. Implement CLI with manual arg parsing
-4. Integrate koino for markdown parsing
-5. Build AST to merjs transformer
-6. Add file watching for dev mode
-7. Test end-to-end workflow
+## Implementation Phases
+
+### Phase 1: Foundation ✅
+- [x] Git repository
+- [x] CLI commands (init, build, dev, help)
+- [x] File operations
+- [x] Dev mode with polling
+
+### Phase 2: Markdown Parser
+- [ ] Frontmatter extraction
+- [ ] Block elements (headers, paragraphs, lists, code)
+- [ ] Inline elements (links, bold, italic, code)
+- [ ] Link transformation
+- [ ] AST structure
+
+### Phase 3: Code Generator
+- [ ] AST to merjs conversion
+- [ ] Meta block generation
+- [ ] Render function generation
+- [ ] Proper indentation and formatting
+
+### Phase 4: Polish
+- [ ] Error handling
+- [ ] Better error messages
+- [ ] Configuration options
+- [ ] Documentation
+
+## Notes
+- Keeping parser simple - no full CommonMark compliance needed
+- Focus on elements used in typical documentation/sites
+- Deterministic output for testing
+- Self-contained implementation (no external deps)
