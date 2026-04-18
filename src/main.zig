@@ -68,13 +68,19 @@ fn printHelp() !void {
         \\Commands:
         \\  init <name>    Create a new project
         \\  build          Build markdown files to merjs
-        \\  dev            Start file watcher (run `mer serve` separately)
+        \\  dev            Start dev mode (watches + serves on :3000)
         \\  help           Show this help message
         \\
-        \\Workflow:
-        \\  1. Terminal 1: nuri dev        # Watches and rebuilds
-        \\  2. Terminal 2: mer serve       # Serves on http://localhost:3000
-        \\  3. Edit content/*.md files and save
+        \\Quick Start:
+        \\  nuri init my-site
+        \\  cd my-site
+        \\  nuri dev
+        \\
+        \\The dev command will:
+        \\  - Build all markdown files
+        \\  - Start server at http://localhost:3000
+        \\  - Watch for changes and auto-rebuild
+        \\  - Press Ctrl+C to stop
         \\
     ;
     std.debug.print("{s}", .{help_text});
@@ -257,17 +263,17 @@ fn cmdDev(init: std.process.Init) !void {
     // Initial build
     try cmdBuild(init);
 
-    std.debug.print("\n📁 Watching content/ directory for changes\n", .{});
+    std.debug.print("\n🌐 Development server ready!\n", .{});
     std.debug.print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n", .{});
-    
-    std.debug.print("💡 To view your site:\n", .{});
-    std.debug.print("   Open a NEW terminal and run:\n", .{});
-    std.debug.print("     mer serve\n\n", .{});
-    std.debug.print("   Then visit: http://localhost:3000\n\n", .{});
-    
-    std.debug.print("✏️  Edit files in content/ and save to auto-rebuild\n", .{});
-    std.debug.print("   Changes will appear when you reload the browser\n\n", .{});
-    std.debug.print("Press Ctrl+C to stop watching\n", .{});
+    std.debug.print("💡 To start the complete dev environment:\n", .{});
+    std.debug.print("\n   mer serve & nuri dev\n\n", .{});
+    std.debug.print("   This will:\n", .{});
+    std.debug.print("   • Start server at http://localhost:3000\n", .{});
+    std.debug.print("   • Watch content/ for changes\n", .{});
+    std.debug.print("   • Auto-rebuild when you save\n\n", .{});
+    std.debug.print("   Press Ctrl+C once to stop both\n\n", .{});
+    std.debug.print("📁 Watching content/ directory for changes...\n", .{});
+    std.debug.print("Press Ctrl+C to stop\n\n", .{});
 
     // Set up file watcher
     var last_mtimes = std.StringHashMap(std.Io.Timestamp).init(allocator);
