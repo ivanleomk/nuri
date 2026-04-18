@@ -1,0 +1,109 @@
+/* Nuri default styles — edit freely, this file won't be overwritten */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #fafafa;
+  --text: #1a1a2e;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --code-bg: #f3f4f6;
+  --pre-bg: #1e1e2e;
+  --pre-text: #cdd6f4;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+.layout {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 24px 96px;
+}
+
+/* Typography */
+.title {
+  font-size: 2em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 16px;
+  line-height: 1.2;
+}
+
+.subtitle {
+  font-size: 1.4em;
+  font-weight: 600;
+  margin-top: 32px;
+  margin-bottom: 12px;
+  letter-spacing: -0.01em;
+}
+
+.heading {
+  font-size: 1.15em;
+  font-weight: 600;
+  margin-top: 24px;
+  margin-bottom: 8px;
+}
+
+p { margin-bottom: 16px; }
+strong { font-weight: 600; }
+
+/* Links */
+a { color: var(--accent); text-decoration: none; }
+a:hover { color: var(--accent-hover); text-decoration: underline; }
+
+/* Lists */
+ul, ol { margin-bottom: 16px; padding-left: 24px; }
+li { margin-bottom: 6px; }
+li::marker { color: var(--muted); }
+
+/* Code */
+code {
+  font-family: 'SF Mono', ui-monospace, 'Cascadia Code', Menlo, monospace;
+  font-size: 0.875em;
+  background: var(--code-bg);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+pre {
+  background: var(--pre-bg);
+  color: var(--pre-text);
+  border-radius: 8px;
+  padding: 16px 20px;
+  overflow-x: auto;
+  margin-bottom: 16px;
+  font-size: 0.875em;
+  line-height: 1.6;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+  font-size: inherit;
+}
+
+/* Blockquote */
+blockquote {
+  border-left: 3px solid var(--accent);
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  color: var(--muted);
+  background: var(--code-bg);
+  border-radius: 0 6px 6px 0;
+}
+
+/* Horizontal rule */
+hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 0.925em; }
+th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+th { font-weight: 600; color: var(--muted); font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.05em; }

@@ -13,3 +13,7 @@ pub const routes: []const Route = &.{
     .{ .path = "/", .render = app_index.render, .render_stream = if (@hasDecl(app_index, "renderStream")) app_index.renderStream else null, .meta = if (@hasDecl(app_index, "meta")) app_index.meta else .{}, .prerender = if (@hasDecl(app_index, "prerender")) app_index.prerender else false },
     .{ .path = "/install", .render = app_install.render, .render_stream = if (@hasDecl(app_install, "renderStream")) app_install.renderStream else null, .meta = if (@hasDecl(app_install, "meta")) app_install.meta else .{}, .prerender = if (@hasDecl(app_install, "prerender")) app_install.prerender else false },
 };
+
+const app_layout = @import("app/layout");
+pub const layout = app_layout.wrap;
+pub const streamLayout = if (@hasDecl(app_layout, "streamWrap")) app_layout.streamWrap else null;
