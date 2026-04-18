@@ -1,0 +1,11 @@
+.{
+    .name = .nuri,
+    .version = "0.1.0",
+    .fingerprint = 0x81e0371f8b3c9d9f,
+    .dependencies = .{},
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+    },
+}

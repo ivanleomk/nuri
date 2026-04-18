@@ -1,0 +1,8 @@
+.zig-cache/
+zig-out/
+zig-pkg/
+*.zig-cache/
+
+# Generated test projects
+test-*/
+*.test/
