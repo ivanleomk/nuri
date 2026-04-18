@@ -68,13 +68,13 @@ fn printHelp() !void {
         \\Commands:
         \\  init <name>    Create a new project
         \\  build          Build markdown files to merjs
-        \\  dev            Watch files and rebuild on changes
+        \\  dev            Start file watcher (run `mer serve` separately)
         \\  help           Show this help message
         \\
-        \\Examples:
-        \\  nuri init my-site
-        \\  nuri build
-        \\  nuri dev
+        \\Workflow:
+        \\  1. Terminal 1: nuri dev        # Watches and rebuilds
+        \\  2. Terminal 2: mer serve       # Serves on http://localhost:3000
+        \\  3. Edit content/*.md files and save
         \\
     ;
     std.debug.print("{s}", .{help_text});
@@ -120,8 +120,6 @@ fn cmdInit(init: std.process.Init, name: []const u8) !void {
         \\
         \\This is your first page with **bold** and *italic* text.
         \\
-        \\Check out [this link](./about.md).
-        \\
     ;
 
     const index_path = try std.fs.path.join(allocator, &.{ content_dir, "index.md" });
@@ -157,7 +155,8 @@ fn cmdInit(init: std.process.Init, name: []const u8) !void {
     std.debug.print("✓ Created nuri.config.json\n", .{});
     std.debug.print("\nNext steps:\n", .{});
     std.debug.print("  cd {s}\n", .{name});
-    std.debug.print("  nuri build\n", .{});
+    std.debug.print("  nuri dev       # Terminal 1: watch files\n", .{});
+    std.debug.print("  mer serve      # Terminal 2: serve at :3000\n", .{});
 }
 
 fn cmdBuild(init: std.process.Init) !void {
@@ -255,15 +254,22 @@ fn cmdDev(init: std.process.Init) !void {
     std.debug.print("🚀 Nuri development mode\n", .{});
     std.debug.print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n", .{});
 
+    // Initial build
     try cmdBuild(init);
 
     std.debug.print("\n📁 Watching content/ directory for changes\n", .{});
-    std.debug.print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n", .{});
-    std.debug.print("\n💡 To view your site:\n", .{});
-    std.debug.print("   Run: mer serve\n", .{});
-    std.debug.print("   Then: http://localhost:3000\n", .{});
-    std.debug.print("\n✏️  Edit files in content/ and they will auto-rebuild\n\n", .{});
+    std.debug.print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n", .{});
+    
+    std.debug.print("💡 To view your site:\n", .{});
+    std.debug.print("   Open a NEW terminal and run:\n", .{});
+    std.debug.print("     mer serve\n\n", .{});
+    std.debug.print("   Then visit: http://localhost:3000\n\n", .{});
+    
+    std.debug.print("✏️  Edit files in content/ and save to auto-rebuild\n", .{});
+    std.debug.print("   Changes will appear when you reload the browser\n\n", .{});
+    std.debug.print("Press Ctrl+C to stop watching\n", .{});
 
+    // Set up file watcher
     var last_mtimes = std.StringHashMap(std.Io.Timestamp).init(allocator);
     defer {
         var it = last_mtimes.keyIterator();
@@ -275,6 +281,7 @@ fn cmdDev(init: std.process.Init) !void {
 
     try scanDirectory(io, allocator, "content", &last_mtimes);
 
+    // Watch loop
     while (true) {
         try std.Io.sleep(io, .{ .nanoseconds = 1_000_000_000 }, .awake);
 
@@ -298,7 +305,7 @@ fn cmdDev(init: std.process.Init) !void {
             const prev_mtime = last_mtimes.get(path);
             if (prev_mtime == null or prev_mtime.?.nanoseconds != mtime.nanoseconds) {
                 changed = true;
-                std.debug.print("\nChange detected: {s}\n", .{path});
+                std.debug.print("📝 Change detected: {s}\n", .{path});
             }
         }
 
@@ -307,7 +314,7 @@ fn cmdDev(init: std.process.Init) !void {
             cmdBuild(init) catch |err| {
                 std.debug.print("❌ Build failed: {any}\n", .{err});
             };
-            std.debug.print("✅ Done! Reload your browser to see changes\n\n", .{});
+            std.debug.print("✅ Done! Reload browser to see changes\n\n", .{});
 
             var old_it = last_mtimes.keyIterator();
             while (old_it.next()) |key| {
