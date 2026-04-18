@@ -252,12 +252,17 @@ fn cmdDev(init: std.process.Init) !void {
     const io = init.io;
     const allocator = init.gpa;
     
-    std.debug.print("Starting development server...\n", .{});
-    std.debug.print("Watching content/ directory for changes...\n\n", .{});
+    std.debug.print("🚀 Nuri development mode\n", .{});
+    std.debug.print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n", .{});
 
     try cmdBuild(init);
 
-    std.debug.print("\nWatching for changes (Press Ctrl+C to stop)\n", .{});
+    std.debug.print("\n📁 Watching content/ directory for changes\n", .{});
+    std.debug.print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n", .{});
+    std.debug.print("\n💡 To view your site:\n", .{});
+    std.debug.print("   Run: mer serve\n", .{});
+    std.debug.print("   Then: http://localhost:3000\n", .{});
+    std.debug.print("\n✏️  Edit files in content/ and they will auto-rebuild\n\n", .{});
 
     var last_mtimes = std.StringHashMap(std.Io.Timestamp).init(allocator);
     defer {
@@ -298,11 +303,11 @@ fn cmdDev(init: std.process.Init) !void {
         }
 
         if (changed) {
-            std.debug.print("Rebuilding...\n", .{});
+            std.debug.print("🔄 Rebuilding...\n", .{});
             cmdBuild(init) catch |err| {
-                std.debug.print("Build failed: {any}\n", .{err});
+                std.debug.print("❌ Build failed: {any}\n", .{err});
             };
-            std.debug.print("\nWatching for changes (Press Ctrl+C to stop)\n", .{});
+            std.debug.print("✅ Done! Reload your browser to see changes\n\n", .{});
 
             var old_it = last_mtimes.keyIterator();
             while (old_it.next()) |key| {

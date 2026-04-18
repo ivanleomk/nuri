@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuri Demo Site</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .card-header {
+            background: #f8f9fa;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .card-header h2 {
+            color: #495057;
+            font-size: 1.2rem;
+        }
+        
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        .file-path {
+            display: inline-block;
+            background: #e9ecef;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.85rem;
+            color: #495057;
+            margin-bottom: 1rem;
+        }
+        
+        pre {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 1rem;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        code {
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-left: 0.5rem;
+        }
+        
+        .badge.zig {
+            background: #f7a41d;
+            color: #333;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: #6c757d;
+            border-top: 1px solid #e9ecef;
+            margin-top: 2rem;
+        }
+        
+        .features {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin: 2rem 0;
+        }
+        
+        .feature {
+            text-align: center;
+        }
+        
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🌿 Nuri Demo Site</h1>
+        <p>Markdown to merjs static site generator</p>
+    </header>
+    
+    <div class="container">
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">⚡</div>
+                <div>Fast Generation</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📝</div>
+                <div>Markdown Input</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🎯</div>
+                <div>Type-Safe Output</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🔄</div>
+                <div>Hot Reload</div>
+            </div>
+        </div>
+
+        <div class="cards">
+            <div class="card">
+                <div class="card-header">
+                    <h2>index.md <span class="badge">Source</span></h2>
+                </div>
+                <div class="card-body">
+                    <span class="file-path">content/index.md</span>
+                    <pre><code>---
+title: Home
+---
+
+# Welcome to Nuri
+
+This is your first page with **bold** and *italic* text.
+
+Check out [this link](./about.md).</code></pre>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>index.zig <span class="badge zig">Generated</span></h2>
+                </div>
+                <div class="card-body">
+                    <span class="file-path">src/app/index.zig</span>
+                    <pre><code>pub const meta = .{
+    .title = "Home",
+};
+
+pub fn render() !mer.Node {
+    return mer.html(.{}, .{
+        mer.h1(.{}, "Welcome to Nuri"),
+        mer.p(.{}, .{
+            "This is your first page with ",
+            "", mer.strong(.{}, "bold"), "",
+            " and ",
+            "", mer.em(.{}, "italic"), "",
+            " text.",
+        }),
+        mer.p(.{}, .{
+            "Check out ",
+            "", mer.a(.{.href = "/about"}, "this link"), "",
+            ".",
+        }),
+    });
+}</code></pre>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>about.md <span class="badge">Source</span></h2>
+                </div>
+                <div class="card-body">
+                    <span class="file-path">content/about.md</span>
+                    <pre><code>---
+title: About Us
+---
+
+# About This Site
+
+This is a **demo site** built with Nuri!
+
+## Features
+
+- Fast static site generation
+- Markdown to merjs conversion
+- Hot reload during development
+- Clean, semantic HTML output
+
+## Code Example
+
+```zig
+const std = @import("std");
+
+pub fn main() void {
+    std.debug.print("Hello from Zig!\n", .{});
+}
+```
+
+Learn more on [the homepage](./index.md).</code></pre>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>about.zig <span class="badge zig">Generated</span></h2>
+                </div>
+                <div class="card-body">
+                    <span class="file-path">src/app/about.zig</span>
+                    <pre><code>pub const meta = .{
+    .title = "About Us",
+};
+
+pub fn render() !mer.Node {
+    return mer.html(.{}, .{
+        mer.h1(.{}, "About This Site"),
+        mer.p(.{}, .{
+            "This is a ",
+            "", mer.strong(.{}, "demo site"), "",
+            " built with Nuri!",
+        }),
+        mer.h2(.{}, "Features"),
+        mer.ul(.{}, .{
+            mer.li(.{}, "Fast static site generation"),
+            mer.li(.{}, "Markdown to merjs conversion"),
+            mer.li(.{}, "Hot reload during development"),
+            mer.li(.{}, "Clean, semantic HTML output"),
+        }),
+        mer.h2(.{}, "Code Example"),
+        mer.pre(.{}, mer.code(.{}, "const std = @import(...)...")),
+        mer.p(.{}, .{
+            "Learn more on ",
+            "", mer.a(.{.href = "/index"}, "the homepage"), "",
+            ".",
+        }),
+    });
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Built with Nuri - A Zig-powered static site generator</p>
+        <p style="margin-top: 0.5rem; font-size: 0.9rem;">
+            <code>zig build && ./zig-out/bin/nuri build</code>
+        </p>
+    </footer>
+</body>
+</html>

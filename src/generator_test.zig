@@ -13,8 +13,9 @@ test "generate empty document" {
     const output = try generator.generate(allocator, doc);
     defer allocator.free(output);
     
-    try std.testing.expect(std.mem.containsAtLeast(u8, output, 1, "pub const meta"));
-    try std.testing.expect(std.mem.containsAtLeast(u8, output, 1, "pub fn render"));
+    try std.testing.expect(std.mem.containsAtLeast(u8, output, 1, "const mer = @import(\"mer\");"));
+    try std.testing.expect(std.mem.containsAtLeast(u8, output, 1, "const h = mer.h;"));
+    try std.testing.expect(std.mem.containsAtLeast(u8, output, 1, "pub fn render(req: mer.Request) mer.Response"));
 }
 
 test "generate document with title" {
@@ -31,6 +32,7 @@ test "generate document with title" {
     const output = try generator.generate(allocator, doc);
     defer allocator.free(output);
     
+    try std.testing.expect(std.mem.containsAtLeast(u8, output, 1, "pub const meta: mer.Meta"));
     try std.testing.expect(std.mem.containsAtLeast(u8, output, 1, "My Page"));
 }
 
@@ -53,7 +55,7 @@ test "generate heading" {
     const output = try generator.generate(allocator, doc);
     defer allocator.free(output);
     
-    try std.testing.expect(std.mem.containsAtLeast(u8, output, 1, "mer.h1"));
+    try std.testing.expect(std.mem.containsAtLeast(u8, output, 1, "h.h1"));
     try std.testing.expect(std.mem.containsAtLeast(u8, output, 1, "Hello"));
 }
 
@@ -76,8 +78,8 @@ test "generate paragraph" {
     const output = try generator.generate(allocator, doc);
     defer allocator.free(output);
     
-    try std.testing.expect(std.mem.containsAtLeast(u8, output, 1, "mer.p"));
-    try std.testing.expect(std.mem.containsAtLeast(u8, output, 1, "This is text"));
+    try std.testing.expect(std.mem.containsAtLeast(u8, output, 1, "h.p"));
+    try std.testing.expect(std.mem.containsAtLeast(u8, output, 1, "h.text"));
 }
 
 test "generate bold text" {
@@ -102,7 +104,7 @@ test "generate bold text" {
     const output = try generator.generate(allocator, doc);
     defer allocator.free(output);
     
-    try std.testing.expect(std.mem.containsAtLeast(u8, output, 1, "mer.strong"));
+    try std.testing.expect(std.mem.containsAtLeast(u8, output, 1, "h.strong"));
 }
 
 test "generate link" {
@@ -126,8 +128,7 @@ test "generate link" {
     const output = try generator.generate(allocator, doc);
     defer allocator.free(output);
     
-    try std.testing.expect(std.mem.containsAtLeast(u8, output, 1, "mer.a"));
-    try std.testing.expect(std.mem.containsAtLeast(u8, output, 1, "/page"));
+    try std.testing.expect(std.mem.containsAtLeast(u8, output, 1, "h.a(.{ .href = \"/page\" }"));
     try std.testing.expect(std.mem.containsAtLeast(u8, output, 1, "Click here"));
 }
 
@@ -158,8 +159,8 @@ test "generate unordered list" {
     const output = try generator.generate(allocator, doc);
     defer allocator.free(output);
     
-    try std.testing.expect(std.mem.containsAtLeast(u8, output, 1, "mer.ul"));
-    try std.testing.expect(std.mem.containsAtLeast(u8, output, 1, "mer.li"));
+    try std.testing.expect(std.mem.containsAtLeast(u8, output, 1, "h.ul"));
+    try std.testing.expect(std.mem.containsAtLeast(u8, output, 1, "h.li"));
 }
 
 test "generate code block" {
@@ -180,8 +181,8 @@ test "generate code block" {
     const output = try generator.generate(allocator, doc);
     defer allocator.free(output);
     
-    try std.testing.expect(std.mem.containsAtLeast(u8, output, 1, "mer.pre"));
-    try std.testing.expect(std.mem.containsAtLeast(u8, output, 1, "mer.code"));
+    try std.testing.expect(std.mem.containsAtLeast(u8, output, 1, "h.pre"));
+    try std.testing.expect(std.mem.containsAtLeast(u8, output, 1, "h.code"));
 }
 
 test "escapes quotes in output" {
