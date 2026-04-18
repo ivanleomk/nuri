@@ -417,6 +417,12 @@ fn cmdBuild(init: std.process.Init) !void {
         std.debug.print("\nBuilt {d} file(s)\n", .{file_count});
     }
 
+    // Ensure content/index.md exists — every site needs a homepage
+    _ = cwd.statFile(io, "content/index.md", .{}) catch {
+        std.debug.print("Error: content/index.md is required (every site needs a homepage)\n", .{});
+        return error.MissingIndexPage;
+    };
+
     // Generate src/generated/routes.zig
     try generateRoutes(init);
 }
