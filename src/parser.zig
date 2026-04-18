@@ -506,6 +506,11 @@ fn transformLinkUrl(allocator: std.mem.Allocator, url: []const u8) ![]const u8 {
     else
         without_ext;
 
+    // "index" → "/"
+    if (std.mem.eql(u8, without_prefix, "index")) {
+        return try allocator.dupe(u8, "/");
+    }
+
     // Ensure leading /
     if (without_prefix.len > 0 and without_prefix[0] == '/') {
         return try allocator.dupe(u8, without_prefix);
