@@ -12,8 +12,37 @@ if [ ! -f "$ZIG_DIR/zig" ]; then
     mkdir -p "$ZIG_DIR"
     cd "$ZIG_DIR"
     
-    # Download appropriate version for Linux x86_64
-    curl -L "https://ziglang.org/download/${ZIG_VERSION}/zig-linux-x86_64-${ZIG_VERSION}.tar.xz" -o zig.tar.xz
+    # URL pattern changed in 0.16.0: zig-x86_64-linux-VERSION.tar.xz
+    DOWNLOAD_URL="https://ziglang.org/download/${ZIG_VERSION}/zig-x86_64-linux-${ZIG_VERSION}.tar.xz"
+    
+    echo "Downloading from: $DOWNLOAD_URL"
+    
+    # Download with proper error handling
+    if ! curl -fL -o zig.tar.xz "$DOWNLOAD_URL"; then
+        echo "Failed to download from ziglang.org, trying GitHub releases..."
+        DOWNLOAD_URL="https://github.com/ziglang/zig/releases/download/${ZIG_VERSION}/zig-x86_64-linux-${ZIG_VERSION}.tar.xz"
+        echo "Trying: $DOWNLOAD_URL"
+        curl -fL -o zig.tar.xz "$DOWNLOAD_URL" || {
+            echo "ERROR: Could not download Zig from any source"
+            exit 1
+        }
+    fi
+    
+    # Check what we downloaded
+    echo "Downloaded file size:"
+    ls -lh zig.tar.xz
+    
+    # Verify it's a valid archive
+    if ! file zig.tar.xz | grep -q "tar archive\|XZ compressed"; then
+        echo "ERROR: Downloaded file is not a valid tar.xz archive"
+        echo "File type:"
+        file zig.tar.xz
+        echo "First 200 bytes:"
+        head -c 200 zig.tar.xz
+        exit 1
+    fi
+    
+    echo "Extracting..."
     tar -xf zig.tar.xz --strip-components=1
     rm zig.tar.xz
 fi
@@ -22,6 +51,9 @@ fi
 export PATH="$ZIG_DIR:$PATH"
 
 # Verify installation
+echo "Zig location:"
+which zig
+echo "Zig version:"
 zig version
 
 echo "Zig installed successfully!"
