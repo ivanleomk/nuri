@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/styles.css">
+  <title>Nuri - Documentation</title>
+  <meta name="description" content="Complete guide to Nuri static site generator">
+</head>
+<body>
+<div class="layout">
+<div class="page-wrapper"><nav class="toc"><div class="toc-header">On this page</div><ul><li class="toc-h1"><a href="#nuri">Nuri</a></li><li class="toc-h2"><a href="#installation">Installation</a></li><li class="toc-h3"><a href="#pre-built-binary-macos-apple-silicon">Pre-built Binary (macOS Apple Silicon)</a></li><li class="toc-h3"><a href="#build-from-source">Build from Source</a></li><li class="toc-h2"><a href="#quick-start">Quick Start</a></li><li class="toc-h2"><a href="#how-it-works">How It Works</a></li><li class="toc-h2"><a href="#commands">Commands</a></li><li class="toc-h2"><a href="#writing-content">Writing Content</a></li><li class="toc-h3"><a href="#file-based-routing">File-based Routing</a></li><li class="toc-h3"><a href="#frontmatter">Frontmatter</a></li><li class="toc-h3"><a href="#supported-markdown">Supported Markdown</a></li><li class="toc-h2"><a href="#project-structure">Project Structure</a></li><li class="toc-h2"><a href="#deployment">Deployment</a></li><li class="toc-h3"><a href="#static-site-cloudflare-pages-netlify-etc">Static Site (Cloudflare Pages, Netlify, etc.)</a></li><li class="toc-h3"><a href="#server-vps-flyio-etc">Server (VPS, Fly.io, etc.)</a></li><li class="toc-h2"><a href="#customization">Customization</a></li><li class="toc-h2"><a href="#agent-skill">Agent Skill</a></li></ul></nav><div class="page-content"><h1 class="title" id="nuri">Nuri</h1><p>A static site generator that converts Markdown to <a href="https://github.com/ivanleomk/merjs">merjs</a> pages.</p><p>Write your content in Markdown, and Nuri generates type-safe Zig code with routing, hot reload, and semantic HTML — all powered by merjs.</p><h2 class="subtitle" id="installation">Installation</h2><h3 class="heading" id="pre-built-binary-macos-apple-silicon">Pre-built Binary (macOS Apple Silicon)</h3><pre><code>curl -L https://github.com/ivanleomk/nuri/releases/latest/download/nuri-aarch64-macos -o nuri
+chmod +x nuri
+sudo mv nuri /usr/local/bin/</code></pre><h3 class="heading" id="build-from-source">Build from Source</h3><p>Requires <a href="https://ziglang.org/download/">Zig 0.16+</a>:</p><pre><code>git clone https://github.com/ivanleomk/nuri.git
+cd nuri
+zig build -Doptimize=ReleaseSafe
+# Binary is at zig-out/bin/nuri</code></pre><h2 class="subtitle" id="quick-start">Quick Start</h2><pre><code>nuri init my-site
+cd my-site
+nuri dev</code></pre><p>Open <strong>http://localhost:3000</strong> to see your site.</p><h2 class="subtitle" id="how-it-works">How It Works</h2><pre><code>content/           →  nuri build  →  src/app/            →  zig build  →  binary
+  index.md                           index.zig
+  about.md                           about.zig
+  blog/first.md                      blog/first.zig
+                                    src/generated/
+                                      routes.zig</code></pre><ol><li>Write Markdown in <code>content/</code></li><li><code>nuri build</code> generates merjs page modules in <code>src/app/</code></li><li><code>src/generated/routes.zig</code> is auto-generated with all routes</li><li><code>zig build</code> compiles to a single binary server</li></ol><h2 class="subtitle" id="commands">Commands</h2><table><thead><tr><th>Command</th><th>Description</th></tr></thead><tbody><tr><td>`nuri init &lt;name&gt;`</td><td>Create new project</td></tr><tr><td>`nuri build`</td><td>Convert Markdown to merjs pages</td></tr><tr><td>`nuri dev`</td><td>Watch, rebuild, and serve on :3000</td></tr><tr><td>`nuri help`</td><td>Show help</td></tr></tbody></table><h2 class="subtitle" id="writing-content">Writing Content</h2><h3 class="heading" id="file-based-routing">File-based Routing</h3><p>Each Markdown file in <code>content/</code> becomes a route:</p><table><thead><tr><th>File</th><th>Route</th></tr></thead><tbody><tr><td>`content/index.md`</td><td>`/`</td></tr><tr><td>`content/about.md`</td><td>`/about`</td></tr><tr><td>`content/blog/first.md`</td><td>`/blog/first`</td></tr></tbody></table><p>Every site <strong>must</strong> have <code>content/index.md</code> (homepage).</p><h3 class="heading" id="frontmatter">Frontmatter</h3><p>Add metadata at the top of Markdown files:</p><pre><code>---
+title: About Us
+description: Learn more about our team
+---
+
+# About Us
+
+Your content here...</code></pre><h3 class="heading" id="supported-markdown">Supported Markdown</h3><ul><li>Headings (<code># H1</code> through <code>###### H6</code>)</li><li>Paragraphs</li><li><strong>Bold</strong> and <em>italic</em> text</li><li><code>Inline code</code></li><li>Code blocks with language hints</li><li>Unordered and ordered lists</li><li><a href="https://example.com">Links</a> — local <code>.md</code> links auto-transform to routes</li></ul><h2 class="subtitle" id="project-structure">Project Structure</h2><pre><code>my-site/
+├── build.zig              # Zig build configuration
+├── build.zig.zon          # Dependencies
+├── nuri.config.json       # Site metadata
+├── content/               # Markdown files
+│   └── index.md
+├── public/               # Static assets (CSS, images)
+└── src/
+    ├── main.zig          # Server entry point
+    ├── app/              # Generated page modules
+    └── generated/
+        └── routes.zig    # Auto-generated routes</code></pre><h2 class="subtitle" id="deployment">Deployment</h2><h3 class="heading" id="static-site-cloudflare-pages-netlify-etc">Static Site (Cloudflare Pages, Netlify, etc.)</h3><pre><code>zig build prod    # Compiles + prerenders to dist/</code></pre><p>Upload the <code>dist/</code> folder to any static host.</p><h3 class="heading" id="server-vps-flyio-etc">Server (VPS, Fly.io, etc.)</h3><pre><code>zig build -Doptimize=ReleaseFast
+# Deploy zig-out/bin/nuri-site</code></pre><h2 class="subtitle" id="customization">Customization</h2><p>Edit <code>public/styles.css</code> to customize styling — this file won't be overwritten.</p><h2 class="subtitle" id="agent-skill">Agent Skill</h2><p>Nuri includes a Vercel Agent Skill for AI assistants. Install it with:</p><pre><code>npx skills add https://github.com/ivanleomk/nuri/tree/main/nuri</code></pre><p>The skill provides project patterns, routing conventions, development workflows, and deployment configurations for AI tools that support the <a href="https://agentskills.io/specification">Agent Skills standard</a>.</p><p><strong>GitHub:</strong> <a href="https://github.com/ivanleomk/nuri">github.com/ivanleomk/nuri</a></p></div></div>
+</div>
+</body>
+</html>

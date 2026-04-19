@@ -123,19 +123,36 @@ my-site/
 
 ## Deployment
 
-### Static Site (Cloudflare Pages, Netlify, etc.)
+### VPS / Server (Recommended)
 
-```bash
-zig build prod    # Compiles + prerenders to dist/
-```
-
-Upload the `dist/` folder to any static host.
-
-### Server (VPS, Fly.io, etc.)
+Build and deploy the native binary:
 
 ```bash
 zig build -Doptimize=ReleaseFast
-# Deploy zig-out/bin/nuri-site
+# Deploy zig-out/bin/nuri-site to your server
+```
+
+Or use the dev server for simple hosting:
+```bash
+zig build serve
+```
+
+### Cloudflare Workers (Edge/WASM)
+
+**Note:** WASM deployment requires merjs modifications. The current merjs library links libc which is incompatible with `wasm32-freestanding`. 
+
+For edge deployment, use the native binary with a lightweight wrapper, or deploy to:
+- **Fly.io** - Good for Zig binaries
+- **Railway** - Docker container support  
+- **DigitalOcean** - VPS hosting
+
+### Static Site
+
+For static hosting (Cloudflare Pages, Netlify):
+
+```bash
+zig build -Doptimize=ReleaseFast
+# Run the binary and scrape the output, or use a static site generator
 ```
 
 ## Customization

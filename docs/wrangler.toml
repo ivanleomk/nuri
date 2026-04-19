@@ -1,0 +1,12 @@
+# Cloudflare Workers configuration for nuri-site
+name = "nuri-docs"
+main = "worker/index.js"
+compatibility_date = "2024-01-01"
+
+# Optional: Add environment variables, KV bindings, etc.
+# [vars]
+# MY_VAR = "value"
+
+# [kv_namespaces]
+# binding = "MY_KV"
+# id = "xxxxx"

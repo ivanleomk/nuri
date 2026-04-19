@@ -46,7 +46,7 @@ pub fn build(b: *std.Build) void {
         routes_mod.addImport(import_name, page_mod);
     }
 
-    // Main executable
+    // Native executable
     const main_mod = b.createModule(.{
         .root_source_file = b.path("src/main.zig"),
         .target = target,
@@ -56,12 +56,21 @@ pub fn build(b: *std.Build) void {
     main_mod.addImport("mer", mer_mod);
     main_mod.addImport("runtime", runtime_mod);
     main_mod.addImport("routes", routes_mod);
-
+    
     const exe = b.addExecutable(.{ .name = "nuri-site", .root_module = main_mod });
     b.installArtifact(exe);
 
+    // zig build serve - Start dev server
     const run_exe = b.addRunArtifact(exe);
     run_exe.step.dependOn(b.getInstallStep());
     if (b.args) |args| run_exe.addArgs(args);
     b.step("serve", "Start the dev server").dependOn(&run_exe.step);
+
+    // zig build worker - Compile to WASM for Cloudflare Workers
+    // NOTE: This requires merjs to be built without libc for WASM targets.
+    // Currently merjs has link_libc=true which prevents WASM compilation.
+    // As a workaround, we build the native binary which can be deployed 
+    // to any server. For true edge/WASM deployment, merjs needs modification.
+    const worker_step = b.step("worker", "Build server binary (WASM not supported due to merjs libc dependency)");
+    worker_step.dependOn(b.getInstallStep());
 }
