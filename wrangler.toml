@@ -1,16 +1,16 @@
 # Cloudflare Workers configuration for nuri-site
 name = "nuri-docs"
-main = "worker/index.js"
+main = "docs/worker/index.js"
 compatibility_date = "2024-12-01"
 
 # Build WASM before deploying
 [build]
-command = "cd .. && zig build worker"
+command = "cd docs && zig build worker"
 
 # WASM module rules
 [[rules]]
 type = "CompiledWasm"
-globs = ["**/*.wasm"]
+globs = ["docs/**/*.wasm"]
 
 # Optional: Add custom domain
 # routes = [
