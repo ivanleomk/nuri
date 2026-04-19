@@ -32,11 +32,6 @@ fn page() h.Node {
                 h.li(.{ .class = "toc-h3" }, .{h.a(.{ .href = "#supported-markdown" }, "Supported Markdown")}),
                 h.li(.{ .class = "toc-h2" }, .{h.a(.{ .href = "#project-structure" }, "Project Structure")}),
                 h.li(.{ .class = "toc-h2" }, .{h.a(.{ .href = "#deployment" }, "Deployment")}),
-                h.li(.{ .class = "toc-h3" }, .{h.a(.{ .href = "#cloudflare-workers-recommended" }, "Cloudflare Workers (Recommended)")}),
-                h.li(.{ .class = "toc-h3" }, .{h.a(.{ .href = "#vps-server" }, "VPS / Server")}),
-                h.li(.{ .class = "toc-h3" }, .{h.a(.{ .href = "#static-site" }, "Static Site")}),
-                h.li(.{ .class = "toc-h3" }, .{h.a(.{ .href = "#cloudflare-workers-edgewasm" }, "Cloudflare Workers (Edge/WASM)")}),
-                h.li(.{ .class = "toc-h3" }, .{h.a(.{ .href = "#static-site-1" }, "Static Site")}),
                 h.li(.{ .class = "toc-h2" }, .{h.a(.{ .href = "#customization" }, "Customization")}),
                 h.li(.{ .class = "toc-h2" }, .{h.a(.{ .href = "#agent-skill" }, "Agent Skill")}),
             }),
@@ -184,64 +179,11 @@ fn page() h.Node {
             h.h2(.{ .class = "subtitle", .id = "project-structure" }, "Project Structure"),
             h.pre(.{}, .{h.code(.{}, "my-site/\n├── build.zig              # Zig build configuration\n├── build.zig.zon          # Dependencies\n├── nuri.config.json       # Site metadata\n├── content/               # Markdown files\n│   └── index.md\n├── public/               # Static assets (CSS, images)\n└── src/\n    ├── main.zig          # Server entry point\n    ├── app/              # Generated page modules\n    └── generated/\n        └── routes.zig    # Auto-generated routes")}),
             h.h2(.{ .class = "subtitle", .id = "deployment" }, "Deployment"),
-            h.h3(.{ .class = "heading", .id = "cloudflare-workers-recommended" }, "Cloudflare Workers (Recommended)"),
             h.p(.{}, .{
-                h.text("Deploy as a WebAssembly edge function on Cloudflare's global network:"),
+                h.text("See the "),
+                h.a(.{ .href = "/deployment" }, "deployment guide"),
+                h.text(" for detailed instructions on deploying to Cloudflare Workers, VPS, or static hosts."),
             }),
-            h.pre(.{}, .{h.code(.{}, "cd docs\nnpx wrangler deploy")}),
-            h.p(.{}, .{
-                h.text("Or manually build first:"),
-            }),
-            h.pre(.{}, .{h.code(.{}, "cd docs\nzig build worker\nnpx wrangler deploy --no-build")}),
-            h.p(.{}, .{
-                h.text("The site runs as a WASM worker (~12KB gzipped) — fast, globally distributed, and scales automatically."),
-            }),
-            h.h3(.{ .class = "heading", .id = "vps-server" }, "VPS / Server"),
-            h.p(.{}, .{
-                h.text("For traditional server deployment:"),
-            }),
-            h.pre(.{}, .{h.code(.{}, "zig build -Doptimize=ReleaseFast\n# Deploy zig-out/bin/nuri-site binary to your server")}),
-            h.p(.{}, .{
-                h.text("Or use Docker/Fly.io/Railway for containerized deployment."),
-            }),
-            h.h3(.{ .class = "heading", .id = "static-site" }, "Static Site"),
-            h.p(.{}, .{
-                h.text("For static hosting (Cloudflare Pages, Netlify):"),
-            }),
-            h.pre(.{}, .{h.code(.{}, "zig build -Doptimize=ReleaseFast\n# Run the binary locally, then scrape the output")}),
-            h.p(.{}, .{
-                h.text("Or use the dev server for simple hosting:"),
-            }),
-            h.pre(.{}, .{h.code(.{}, "zig build serve")}),
-            h.h3(.{ .class = "heading", .id = "cloudflare-workers-edgewasm" }, "Cloudflare Workers (Edge/WASM)"),
-            h.p(.{}, .{
-                h.strong(.{}, "Note:"),
-                h.text(" WASM deployment requires merjs modifications. The current merjs library links libc which is incompatible with "),
-                h.code(.{}, "wasm32-freestanding"),
-                h.text("."),
-            }),
-            h.p(.{}, .{
-                h.text("For edge deployment, use the native binary with a lightweight wrapper, or deploy to:"),
-            }),
-            h.ul(.{}, .{
-                h.li(.{}, .{
-                    h.strong(.{}, "Fly.io"),
-                    h.text(" - Good for Zig binaries"),
-                }),
-                h.li(.{}, .{
-                    h.strong(.{}, "Railway"),
-                    h.text(" - Docker container support"),
-                }),
-                h.li(.{}, .{
-                    h.strong(.{}, "DigitalOcean"),
-                    h.text(" - VPS hosting"),
-                }),
-            }),
-            h.h3(.{ .class = "heading", .id = "static-site-1" }, "Static Site"),
-            h.p(.{}, .{
-                h.text("For static hosting (Cloudflare Pages, Netlify):"),
-            }),
-            h.pre(.{}, .{h.code(.{}, "zig build -Doptimize=ReleaseFast\n# Run the binary and scrape the output, or use a static site generator")}),
             h.h2(.{ .class = "subtitle", .id = "customization" }, "Customization"),
             h.p(.{}, .{
                 h.text("Edit "),

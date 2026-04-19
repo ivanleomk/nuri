@@ -2,9 +2,11 @@
 
 const Route = @import("mer").Route;
 
+const app_deployment = @import("app/deployment");
 const app_index = @import("app/index");
 
 pub const routes: []const Route = &.{
+    .{ .path = "/deployment", .render = app_deployment.render, .render_stream = if (@hasDecl(app_deployment, "renderStream")) app_deployment.renderStream else null, .meta = if (@hasDecl(app_deployment, "meta")) app_deployment.meta else .{}, .prerender = if (@hasDecl(app_deployment, "prerender")) app_deployment.prerender else false },
     .{ .path = "/", .render = app_index.render, .render_stream = if (@hasDecl(app_index, "renderStream")) app_index.renderStream else null, .meta = if (@hasDecl(app_index, "meta")) app_index.meta else .{}, .prerender = if (@hasDecl(app_index, "prerender")) app_index.prerender else false },
 };
 

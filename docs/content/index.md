@@ -123,66 +123,7 @@ my-site/
 
 ## Deployment
 
-### Cloudflare Workers (Recommended)
-
-Deploy as a WebAssembly edge function on Cloudflare's global network:
-
-```bash
-cd docs
-npx wrangler deploy
-```
-
-Or manually build first:
-```bash
-cd docs
-zig build worker
-npx wrangler deploy --no-build
-```
-
-The site runs as a WASM worker (~12KB gzipped) — fast, globally distributed, and scales automatically.
-
-### VPS / Server
-
-For traditional server deployment:
-
-```bash
-zig build -Doptimize=ReleaseFast
-# Deploy zig-out/bin/nuri-site binary to your server
-```
-
-Or use Docker/Fly.io/Railway for containerized deployment.
-
-### Static Site
-
-For static hosting (Cloudflare Pages, Netlify):
-
-```bash
-zig build -Doptimize=ReleaseFast
-# Run the binary locally, then scrape the output
-```
-
-Or use the dev server for simple hosting:
-```bash
-zig build serve
-```
-
-### Cloudflare Workers (Edge/WASM)
-
-**Note:** WASM deployment requires merjs modifications. The current merjs library links libc which is incompatible with `wasm32-freestanding`. 
-
-For edge deployment, use the native binary with a lightweight wrapper, or deploy to:
-- **Fly.io** - Good for Zig binaries
-- **Railway** - Docker container support  
-- **DigitalOcean** - VPS hosting
-
-### Static Site
-
-For static hosting (Cloudflare Pages, Netlify):
-
-```bash
-zig build -Doptimize=ReleaseFast
-# Run the binary and scrape the output, or use a static site generator
-```
+See the [deployment guide](deployment.md) for detailed instructions on deploying to Cloudflare Workers, VPS, or static hosts.
 
 ## Customization
 
