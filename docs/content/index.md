@@ -7,7 +7,7 @@ description: Complete guide to Nuri static site generator
 
 A static site generator that converts Markdown to [merjs](https://github.com/ivanleomk/merjs) pages.
 
-Write your content in Markdown, and Nuri generates type-safe Zig code with routing, hot reload, and semantic HTML — all powered by merjs.
+Write your content in Markdown, and Nuri generates type-safe Zig code with routing, hot reload, and semantic HTML — all powered by merjs. Deploy to Cloudflare Workers, VPS, or anywhere.
 
 ## Installation
 
