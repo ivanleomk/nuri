@@ -188,11 +188,11 @@ fn page() h.Node {
             h.p(.{}, .{
                 h.text("Deploy as a WebAssembly edge function on Cloudflare's global network:"),
             }),
-            h.pre(.{}, .{h.code(.{}, "# From the project root\nnpx wrangler deploy")}),
+            h.pre(.{}, .{h.code(.{}, "cd docs\nnpx wrangler deploy")}),
             h.p(.{}, .{
-                h.text("Or manually:"),
+                h.text("Or manually build first:"),
             }),
-            h.pre(.{}, .{h.code(.{}, "cd docs\nzig build worker\ncd ..\nnpx wrangler deploy --no-build")}),
+            h.pre(.{}, .{h.code(.{}, "cd docs\nzig build worker\nnpx wrangler deploy --no-build")}),
             h.p(.{}, .{
                 h.text("The site runs as a WASM worker (~12KB gzipped) — fast, globally distributed, and scales automatically."),
             }),

@@ -128,15 +128,14 @@ my-site/
 Deploy as a WebAssembly edge function on Cloudflare's global network:
 
 ```bash
-# From the project root
+cd docs
 npx wrangler deploy
 ```
 
-Or manually:
+Or manually build first:
 ```bash
 cd docs
 zig build worker
-cd ..
 npx wrangler deploy --no-build
 ```
 
