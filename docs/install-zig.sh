@@ -6,6 +6,9 @@ set -e
 ZIG_VERSION="0.16.0"
 ZIG_DIR="$HOME/.zig"
 
+# Remember the original directory (docs/)
+ORIGINAL_DIR=$(pwd)
+
 # Download Zig if not already cached
 if [ ! -f "$ZIG_DIR/zig" ]; then
     echo "Downloading Zig ${ZIG_VERSION}..."
@@ -47,8 +50,9 @@ if [ ! -f "$ZIG_DIR/zig" ]; then
     rm zig.tar.xz
 fi
 
-# Now run the build using the full path
-echo "Building WASM bundle..."
+# Go back to original directory (docs/) and run the build
+cd "$ORIGINAL_DIR"
+echo "Building WASM bundle in: $(pwd)"
 $ZIG_DIR/zig build worker
 
 echo "Build complete!"
