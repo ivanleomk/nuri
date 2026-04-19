@@ -1,8 +1,10 @@
 # Nuri
 
+[![Deploy to Cloudflare Workers](https://github.com/ivanleomk/nuri/actions/workflows/deploy.yml/badge.svg)](https://github.com/ivanleomk/nuri/actions/workflows/deploy.yml)
+
 A static site generator that converts Markdown to [merjs](https://github.com/ivanleomk/merjs) (Zig web framework) pages.
 
-Write your content in Markdown, and Nuri generates type-safe Zig code with routing, hot reload, and semantic HTML — all powered by merjs.
+Write your content in Markdown, and Nuri generates type-safe Zig code with routing, hot reload, and semantic HTML — all powered by merjs. Deploy anywhere — from Cloudflare Workers edge network to traditional servers.
 
 ## Install
 
