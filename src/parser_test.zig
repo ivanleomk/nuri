@@ -231,3 +231,79 @@ test "complex document" {
     try std.testing.expectEqualStrings("Test Page", doc.meta.title.?);
     try std.testing.expectEqual(@as(usize, 3), doc.content.len); // heading, paragraph, list
 }
+
+test "parse simple table" {
+    const allocator = std.testing.allocator;
+    
+    const markdown = 
+        \\| Name | Age |
+        \\|------|-----|
+        \\| Alice | 25 |
+        \\| Bob | 30 |
+    ;
+    
+    var doc = try parser.parse(allocator, markdown);
+    defer doc.deinit(allocator);
+    
+    try std.testing.expectEqual(@as(usize, 1), doc.content.len);
+    try std.testing.expect(doc.content[0] == .table);
+    
+    const table = doc.content[0].table;
+    try std.testing.expectEqual(@as(usize, 2), table.headers.len);
+    try std.testing.expectEqualStrings("Name", table.headers[0]);
+    try std.testing.expectEqualStrings("Age", table.headers[1]);
+    
+    try std.testing.expectEqual(@as(usize, 2), table.rows.len);
+    try std.testing.expectEqual(@as(usize, 2), table.rows[0].len);
+    try std.testing.expectEqualStrings("Alice", table.rows[0][0]);
+    try std.testing.expectEqualStrings("25", table.rows[0][1]);
+    try std.testing.expectEqualStrings("Bob", table.rows[1][0]);
+    try std.testing.expectEqualStrings("30", table.rows[1][1]);
+}
+
+test "parse table with alignment indicators" {
+    const allocator = std.testing.allocator;
+    
+    const markdown = 
+        \\| Item | Price | Count |
+        \\|:-----|------:|------:|
+        \\| Apple | 1.00 | 5 |
+        \\| Orange | 0.75 | 10 |
+    ;
+    
+    var doc = try parser.parse(allocator, markdown);
+    defer doc.deinit(allocator);
+    
+    try std.testing.expectEqual(@as(usize, 1), doc.content.len);
+    try std.testing.expect(doc.content[0] == .table);
+    
+    const table = doc.content[0].table;
+    try std.testing.expectEqual(@as(usize, 3), table.headers.len);
+    try std.testing.expectEqualStrings("Item", table.headers[0]);
+    try std.testing.expectEqualStrings("Price", table.headers[1]);
+    try std.testing.expectEqualStrings("Count", table.headers[2]);
+    
+    try std.testing.expectEqual(@as(usize, 2), table.rows.len);
+}
+
+test "parse table mixed with other content" {
+    const allocator = std.testing.allocator;
+    
+    const markdown = 
+        \\# Products
+        \\
+        \\| SKU | Name |
+        \\|-----|------|
+        \\| A123 | Widget |
+        \\
+        \\Some text after table.
+    ;
+    
+    var doc = try parser.parse(allocator, markdown);
+    defer doc.deinit(allocator);
+    
+    try std.testing.expectEqual(@as(usize, 3), doc.content.len);
+    try std.testing.expect(doc.content[0] == .heading);
+    try std.testing.expect(doc.content[1] == .table);
+    try std.testing.expect(doc.content[2] == .paragraph);
+}

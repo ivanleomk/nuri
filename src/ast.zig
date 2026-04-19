@@ -16,6 +16,10 @@ pub const Node = union(enum) {
         language: ?[]const u8,
         content: []const u8,
     },
+    table: struct {
+        headers: []const []const u8,
+        rows: []const []const []const u8,
+    },
     text: []const u8,
     bold: []const Node,
     italic: []const Node,
@@ -38,6 +42,15 @@ pub const Node = union(enum) {
             .code_block => |cb| {
                 if (cb.language) |lang| allocator.free(lang);
                 allocator.free(cb.content);
+            },
+            .table => |t| {
+                for (t.headers) |h| allocator.free(h);
+                allocator.free(t.headers);
+                for (t.rows) |row| {
+                    for (row) |cell| allocator.free(cell);
+                    allocator.free(row);
+                }
+                allocator.free(t.rows);
             },
             .text => |s| allocator.free(s),
             .code => |s| allocator.free(s),

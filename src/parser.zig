@@ -53,6 +53,8 @@ pub const Parser = struct {
                 try blocks.append(self.allocator, heading);
             } else if (try self.parseCodeBlock()) |code_block| {
                 try blocks.append(self.allocator, code_block);
+            } else if (try self.parseTable()) |table| {
+                try blocks.append(self.allocator, table);
             } else if (try self.parseList()) |list| {
                 try blocks.append(self.allocator, list);
             } else if (try self.parseParagraph()) |paragraph| {
@@ -188,6 +190,133 @@ pub const Parser = struct {
             .language = if (lang) |l| try self.allocator.dupe(u8, l) else null,
             .content = code_content,
         } };
+    }
+
+    fn parseTable(self: *Parser) !?ast.Node {
+        const line = self.lines[self.current];
+        const trimmed = std.mem.trim(u8, line, " \t");
+
+        // Check if line starts with |
+        if (!std.mem.startsWith(u8, trimmed, "|")) {
+            return null;
+        }
+
+        // Parse header row
+        const header_cells = try self.parseTableRow(trimmed);
+        if (header_cells.len == 0) {
+            return null;
+        }
+
+        self.current += 1;
+
+        // Check for separator row (| --- | --- |)
+        if (self.current >= self.lines.len) {
+            return null;
+        }
+
+        const sep_line = std.mem.trim(u8, self.lines[self.current], " \t");
+        if (!std.mem.startsWith(u8, sep_line, "|") or !isTableSeparator(sep_line)) {
+            return null;
+        }
+
+        self.current += 1;
+
+        // Parse data rows
+        var rows: std.ArrayList([]const []const u8) = .empty;
+        errdefer {
+            for (rows.items) |row| {
+                for (row) |cell| self.allocator.free(cell);
+                self.allocator.free(row);
+            }
+            rows.deinit(self.allocator);
+        }
+
+        while (self.current < self.lines.len) {
+            const data_line = std.mem.trim(u8, self.lines[self.current], " \t");
+            if (!std.mem.startsWith(u8, data_line, "|")) {
+                break;
+            }
+
+            // Check if it's a separator (invalid in data rows)
+            if (isTableSeparator(data_line)) {
+                break;
+            }
+
+            const cells = try self.parseTableRow(data_line);
+            if (cells.len == 0) {
+                break;
+            }
+
+            try rows.append(self.allocator, cells);
+            self.current += 1;
+        }
+
+        return .{ .table = .{
+            .headers = header_cells,
+            .rows = try rows.toOwnedSlice(self.allocator),
+        } };
+    }
+
+    fn parseTableRow(self: *Parser, line: []const u8) ![]const []const u8 {
+        var cells: std.ArrayList([]const u8) = .empty;
+        defer cells.deinit(self.allocator);
+
+        var i: usize = 0;
+        // Skip leading |
+        if (i < line.len and line[i] == '|') {
+            i += 1;
+        }
+
+        while (i < line.len) {
+            // Find end of cell (next |)
+            const start = i;
+            while (i < line.len and line[i] != '|') {
+                i += 1;
+            }
+
+            if (i > start) {
+                const cell_content = std.mem.trim(u8, line[start..i], " \t");
+                if (cell_content.len > 0) {
+                    const cell = try self.allocator.dupe(u8, cell_content);
+                    try cells.append(self.allocator, cell);
+                }
+            }
+
+            // Skip the |
+            if (i < line.len and line[i] == '|') {
+                i += 1;
+            }
+        }
+
+        // Handle trailing empty cells (if line ends with |)
+        if (line.len > 0 and line[line.len - 1] == '|') {
+            // Check if we need to add an empty cell
+            // This handles cases like "| A | B |" where there's a trailing |
+        }
+
+        return try cells.toOwnedSlice(self.allocator);
+    }
+
+    fn isTableSeparator(line: []const u8) bool {
+        // Check if line contains only |, -, :, and spaces
+        // Example: | --- | ---: | :---: |
+        var has_dash = false;
+        var i: usize = 0;
+
+        while (i < line.len) : (i += 1) {
+            const c = line[i];
+            if (c == '|' or c == ' ' or c == '\t' or c == ':') {
+                continue;
+            }
+            if (c == '-') {
+                has_dash = true;
+                continue;
+            }
+            // Found a non-separator character
+            return false;
+        }
+
+        return has_dash;
     }
 
     fn parseList(self: *Parser) !?ast.Node {

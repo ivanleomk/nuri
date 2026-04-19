@@ -149,6 +149,42 @@ pub const Generator = struct {
                 try self.writeEscaped(cb.content);
                 try self.output.appendSlice(self.allocator, "\")}),\n");
             },
+            .table => |t| {
+                try self.output.appendSlice(self.allocator, "h.table(.{}, .{\n");
+                
+                // Generate thead
+                try self.writeIndent(depth + 1);
+                try self.output.appendSlice(self.allocator, "h.thead(.{}, .{h.tr(.{}, .{\n");
+                for (t.headers) |header| {
+                    try self.writeIndent(depth + 2);
+                    try self.output.appendSlice(self.allocator, "h.th(.{}, \"");
+                    try self.writeEscaped(header);
+                    try self.output.appendSlice(self.allocator, "\"),\n");
+                }
+                try self.writeIndent(depth + 1);
+                try self.output.appendSlice(self.allocator, "})}),\n");
+                
+                // Generate tbody
+                try self.writeIndent(depth + 1);
+                try self.output.appendSlice(self.allocator, "h.tbody(.{}, .{\n");
+                for (t.rows) |row| {
+                    try self.writeIndent(depth + 2);
+                    try self.output.appendSlice(self.allocator, "h.tr(.{}, .{\n");
+                    for (row) |cell| {
+                        try self.writeIndent(depth + 3);
+                        try self.output.appendSlice(self.allocator, "h.td(.{}, \"");
+                        try self.writeEscaped(cell);
+                        try self.output.appendSlice(self.allocator, "\"),\n");
+                    }
+                    try self.writeIndent(depth + 2);
+                    try self.output.appendSlice(self.allocator, "}),\n");
+                }
+                try self.writeIndent(depth + 1);
+                try self.output.appendSlice(self.allocator, "}),\n");
+                
+                try self.writeIndent(depth);
+                try self.output.appendSlice(self.allocator, "}),\n");
+            },
             else => {},
         }
     }
