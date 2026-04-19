@@ -123,13 +123,38 @@ my-site/
 
 ## Deployment
 
-### VPS / Server (Recommended)
+### Cloudflare Workers (Recommended)
 
-Build and deploy the native binary:
+Deploy as a WebAssembly edge function on Cloudflare's global network:
+
+```bash
+# 1. Build the WASM bundle
+zig build worker
+
+# 2. Deploy with Wrangler
+npx wrangler deploy
+```
+
+The site runs as a WASM worker — fast, globally distributed, and scales automatically.
+
+### VPS / Server
+
+For traditional server deployment:
 
 ```bash
 zig build -Doptimize=ReleaseFast
-# Deploy zig-out/bin/nuri-site to your server
+# Deploy zig-out/bin/nuri-site binary to your server
+```
+
+Or use Docker/Fly.io/Railway for containerized deployment.
+
+### Static Site
+
+For static hosting (Cloudflare Pages, Netlify):
+
+```bash
+zig build -Doptimize=ReleaseFast
+# Run the binary locally, then scrape the output
 ```
 
 Or use the dev server for simple hosting:

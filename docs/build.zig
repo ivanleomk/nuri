@@ -46,7 +46,7 @@ pub fn build(b: *std.Build) void {
         routes_mod.addImport(import_name, page_mod);
     }
 
-    // Native executable
+    // Native executable for local development
     const main_mod = b.createModule(.{
         .root_source_file = b.path("src/main.zig"),
         .target = target,
@@ -67,10 +67,42 @@ pub fn build(b: *std.Build) void {
     b.step("serve", "Start the dev server").dependOn(&run_exe.step);
 
     // zig build worker - Compile to WASM for Cloudflare Workers
-    // NOTE: This requires merjs to be built without libc for WASM targets.
-    // Currently merjs has link_libc=true which prevents WASM compilation.
-    // As a workaround, we build the native binary which can be deployed 
-    // to any server. For true edge/WASM deployment, merjs needs modification.
-    const worker_step = b.step("worker", "Build server binary (WASM not supported due to merjs libc dependency)");
-    worker_step.dependOn(b.getInstallStep());
+    const wasm_target = b.resolveTargetQuery(.{
+        .cpu_arch = .wasm32,
+        .os_tag = .freestanding,
+    });
+    
+    const worker_mod = b.createModule(.{
+        .root_source_file = merjs_dep.path("src/worker.zig"),
+        .target = wasm_target,
+        .optimize = .ReleaseSmall,
+    });
+    worker_mod.addImport("mer", mer_mod);
+    worker_mod.addImport("routes", routes_mod);
+    
+    // Add page modules to worker
+    if (layout_mod) |lm| worker_mod.addImport("app/layout", lm);
+    var app_dir2 = std.Io.Dir.cwd().openDir(b.graph.io, "src/app", .{ .iterate = true }) catch return;
+    defer app_dir2.close(b.graph.io);
+    var walker2 = app_dir2.walk(b.allocator) catch return;
+    defer walker2.deinit();
+    while (walker2.next(b.graph.io) catch null) |entry| {
+        if (entry.kind != .file) continue;
+        if (!std.mem.endsWith(u8, entry.path, ".zig")) continue;
+        if (std.mem.eql(u8, entry.path, "layout.zig")) continue;
+        const file_path = b.fmt("src/app/{s}", .{entry.path});
+        const import_name = b.fmt("app/{s}", .{entry.path[0 .. entry.path.len - 4]});
+        const page_mod = b.createModule(.{ .root_source_file = b.path(file_path) });
+        page_mod.addImport("mer", mer_mod);
+        if (layout_mod) |lm| page_mod.addImport("app/layout", lm);
+        worker_mod.addImport(import_name, page_mod);
+    }
+    
+    const worker_exe = b.addExecutable(.{ .name = "nuri-site", .root_module = worker_mod });
+    worker_exe.rdynamic = true;
+    worker_exe.entry = .disabled;
+    
+    const install_worker = b.addInstallFile(worker_exe.getEmittedBin(), "../worker/nuri-site.wasm");
+    const worker_step = b.step("worker", "Compile to WASM for Cloudflare Workers");
+    worker_step.dependOn(&install_worker.step);
 }

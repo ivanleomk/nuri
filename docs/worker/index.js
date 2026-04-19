@@ -1,58 +1,54 @@
-// Cloudflare Worker entry point
-// Loads the merjs WASM bundle and handles HTTP requests
+// worker.js — Cloudflare Workers fetch handler for Nuri site
+// Loads the WASM bundle and handles HTTP requests
 
-import wasmModule from "./nuri-site.wasm";
+import nuriWasm from "./nuri-site.wasm";
 
-let wasmInstance = null;
+let instance = null;
+
+async function getInstance() {
+  if (instance) return instance;
+  const mod = await WebAssembly.instantiate(nuriWasm, {
+    env: { memory: new WebAssembly.Memory({ initial: 256 }) },
+  });
+  instance = mod.exports || mod;
+  instance.init();
+  return instance;
+}
 
 export default {
   async fetch(request, env, ctx) {
-    if (!wasmInstance) {
-      // Instantiate the WASM module
-      wasmInstance = await WebAssembly.instantiate(wasmModule, {
-        env: {
-          memory: new WebAssembly.Memory({ initial: 256, maximum: 512 }),
-        },
-      });
-    }
-    
+    const wasm = await getInstance();
     const url = new URL(request.url);
     
-    // Pass request info to WASM via shared memory
-    const reqData = JSON.stringify({
-      method: request.method,
-      path: url.pathname,
-      headers: Object.fromEntries(request.headers),
-    });
+    // Encode request: "METHOD /path"
+    const reqData = `${request.method} ${url.pathname}`;
+    const encoder = new TextEncoder();
+    const reqBytes = encoder.encode(reqData);
     
-    // Call the WASM handler
-    const memory = wasmInstance.exports.memory;
-    const inputBuffer = new TextEncoder().encode(reqData);
+    // Allocate memory in WASM and copy request
+    const inputPtr = wasm.alloc(reqBytes.length);
+    new Uint8Array(wasm.memory.buffer, inputPtr, reqBytes.length).set(reqBytes);
     
-    // Allocate memory in WASM
-    const inputPtr = wasmInstance.exports.alloc(inputBuffer.length);
-    new Uint8Array(memory.buffer, inputPtr, inputBuffer.length).set(inputBuffer);
+    // Call handle()
+    const outputPtr = wasm.handle(inputPtr, reqBytes.length);
+    const outputLen = wasm.response_len();
     
-    // Call handleRequest
-    const outputLenPtr = wasmInstance.exports.alloc(4);
-    const outputPtr = wasmInstance.exports.handleRequest(inputPtr, inputBuffer.length, outputLenPtr);
-    
-    // Read response length
-    const outputLen = new Uint32Array(memory.buffer, outputLenPtr, 1)[0];
-    
-    // Read response body
-    const outputBuffer = new Uint8Array(memory.buffer, outputPtr, outputLen);
-    const html = new TextDecoder().decode(outputBuffer);
+    // Read response: status_u16 LE | ct_len_u16 LE | content-type | body
+    const output = new Uint8Array(wasm.memory.buffer, outputPtr, outputLen);
+    const status = new DataView(output.buffer, output.byteOffset, 2).getUint16(0, true);
+    const ctLen = new DataView(output.buffer, output.byteOffset + 2, 2).getUint16(0, true);
+    const contentType = new TextDecoder().decode(output.slice(4, 4 + ctLen));
+    const body = output.slice(4 + ctLen);
     
     // Free WASM memory
-    wasmInstance.exports.free(inputPtr);
-    wasmInstance.exports.free(outputPtr);
-    wasmInstance.exports.free(outputLenPtr);
+    wasm.dealloc(inputPtr, reqBytes.length);
+    // Note: output buffer is freed by WASM on next request
     
-    return new Response(html, {
+    return new Response(body, {
+      status,
       headers: {
-        "Content-Type": "text/html",
-        "Cache-Control": "public, max-age=60",
+        "content-type": contentType,
+        "cache-control": "public, max-age=60",
       },
     });
   },

@@ -12,6 +12,8 @@ pub fn render(req: mer.Request) mer.Response {
     return mer.render(req.allocator, page_node);
 }
 
+pub const prerender = true;
+
 fn page() h.Node {
     return h.div(.{ .class = "page-wrapper" }, .{
         h.nav(.{ .class = "toc" }, .{
@@ -30,9 +32,11 @@ fn page() h.Node {
                 h.li(.{ .class = "toc-h3" }, .{h.a(.{ .href = "#supported-markdown" }, "Supported Markdown")}),
                 h.li(.{ .class = "toc-h2" }, .{h.a(.{ .href = "#project-structure" }, "Project Structure")}),
                 h.li(.{ .class = "toc-h2" }, .{h.a(.{ .href = "#deployment" }, "Deployment")}),
-                h.li(.{ .class = "toc-h3" }, .{h.a(.{ .href = "#vps-server-recommended" }, "VPS / Server (Recommended)")}),
-                h.li(.{ .class = "toc-h3" }, .{h.a(.{ .href = "#cloudflare-workers-edgewasm" }, "Cloudflare Workers (Edge/WASM)")}),
+                h.li(.{ .class = "toc-h3" }, .{h.a(.{ .href = "#cloudflare-workers-recommended" }, "Cloudflare Workers (Recommended)")}),
+                h.li(.{ .class = "toc-h3" }, .{h.a(.{ .href = "#vps-server" }, "VPS / Server")}),
                 h.li(.{ .class = "toc-h3" }, .{h.a(.{ .href = "#static-site" }, "Static Site")}),
+                h.li(.{ .class = "toc-h3" }, .{h.a(.{ .href = "#cloudflare-workers-edgewasm" }, "Cloudflare Workers (Edge/WASM)")}),
+                h.li(.{ .class = "toc-h3" }, .{h.a(.{ .href = "#static-site-1" }, "Static Site")}),
                 h.li(.{ .class = "toc-h2" }, .{h.a(.{ .href = "#customization" }, "Customization")}),
                 h.li(.{ .class = "toc-h2" }, .{h.a(.{ .href = "#agent-skill" }, "Agent Skill")}),
             }),
@@ -180,11 +184,27 @@ fn page() h.Node {
             h.h2(.{ .class = "subtitle", .id = "project-structure" }, "Project Structure"),
             h.pre(.{}, .{h.code(.{}, "my-site/\n├── build.zig              # Zig build configuration\n├── build.zig.zon          # Dependencies\n├── nuri.config.json       # Site metadata\n├── content/               # Markdown files\n│   └── index.md\n├── public/               # Static assets (CSS, images)\n└── src/\n    ├── main.zig          # Server entry point\n    ├── app/              # Generated page modules\n    └── generated/\n        └── routes.zig    # Auto-generated routes")}),
             h.h2(.{ .class = "subtitle", .id = "deployment" }, "Deployment"),
-            h.h3(.{ .class = "heading", .id = "vps-server-recommended" }, "VPS / Server (Recommended)"),
+            h.h3(.{ .class = "heading", .id = "cloudflare-workers-recommended" }, "Cloudflare Workers (Recommended)"),
             h.p(.{}, .{
-                h.text("Build and deploy the native binary:"),
+                h.text("Deploy as a WebAssembly edge function on Cloudflare's global network:"),
             }),
-            h.pre(.{}, .{h.code(.{}, "zig build -Doptimize=ReleaseFast\n# Deploy zig-out/bin/nuri-site to your server")}),
+            h.pre(.{}, .{h.code(.{}, "# 1. Build the WASM bundle\nzig build worker\n\n# 2. Deploy with Wrangler\nnpx wrangler deploy")}),
+            h.p(.{}, .{
+                h.text("The site runs as a WASM worker — fast, globally distributed, and scales automatically."),
+            }),
+            h.h3(.{ .class = "heading", .id = "vps-server" }, "VPS / Server"),
+            h.p(.{}, .{
+                h.text("For traditional server deployment:"),
+            }),
+            h.pre(.{}, .{h.code(.{}, "zig build -Doptimize=ReleaseFast\n# Deploy zig-out/bin/nuri-site binary to your server")}),
+            h.p(.{}, .{
+                h.text("Or use Docker/Fly.io/Railway for containerized deployment."),
+            }),
+            h.h3(.{ .class = "heading", .id = "static-site" }, "Static Site"),
+            h.p(.{}, .{
+                h.text("For static hosting (Cloudflare Pages, Netlify):"),
+            }),
+            h.pre(.{}, .{h.code(.{}, "zig build -Doptimize=ReleaseFast\n# Run the binary locally, then scrape the output")}),
             h.p(.{}, .{
                 h.text("Or use the dev server for simple hosting:"),
             }),
@@ -213,7 +233,7 @@ fn page() h.Node {
                     h.text(" - VPS hosting"),
                 }),
             }),
-            h.h3(.{ .class = "heading", .id = "static-site" }, "Static Site"),
+            h.h3(.{ .class = "heading", .id = "static-site-1" }, "Static Site"),
             h.p(.{}, .{
                 h.text("For static hosting (Cloudflare Pages, Netlify):"),
             }),
