@@ -14,9 +14,9 @@ directory = "public"
 command = "chmod +x install-zig.sh && ./install-zig.sh"
 
 # Custom domain configuration
-routes = [
-  { pattern = "nuri.ivanleo.com", custom_domain = true }
-]
+[[routes]]
+pattern = "nuri.ivanleo.com"
+custom_domain = true
 
 # Enable Cloudflare analytics and telemetry
 [telemetry]
