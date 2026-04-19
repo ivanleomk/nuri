@@ -542,115 +542,288 @@ fn generateLayout(io: std.Io, cwd: std.Io.Dir) !void {
 }
 
 const default_css =
-    \\/* Nuri default styles — edit freely, this file won't be overwritten */
+    \\/* Nuri docs — clean Mintlify-inspired light theme. Edit freely, this file won't be overwritten. */
+    \\@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
+    \\
     \\*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     \\
     \\:root {
-    \\  --bg: #fafafa;
-    \\  --text: #1a1a2e;
-    \\  --muted: #6b7280;
-    \\  --border: #e5e7eb;
-    \\  --accent: #2563eb;
-    \\  --accent-hover: #1d4ed8;
-    \\  --code-bg: #f3f4f6;
-    \\  --pre-bg: #1e1e2e;
-    \\  --pre-text: #cdd6f4;
+    \\  --accent: oklch(0.55 0.14 160);
+    \\  --accent-hover: oklch(0.48 0.14 160);
+    \\  --accent-subtle: oklch(0.95 0.02 160);
+    \\  --accent-text: oklch(0.42 0.1 160);
+    \\  --bg: oklch(0.985 0.003 160);
+    \\  --bg-page: oklch(1 0 0);
+    \\  --surface: oklch(0.975 0.004 160);
+    \\  --border: oklch(0.92 0.005 160);
+    \\  --border-strong: oklch(0.88 0.008 160);
+    \\  --text: oklch(0.22 0.01 160);
+    \\  --text-secondary: oklch(0.44 0.01 160);
+    \\  --text-muted: oklch(0.58 0.01 160);
+    \\  --code-bg: oklch(0.96 0.005 160);
+    \\  --code-text: oklch(0.42 0.08 160);
+    \\  --pre-bg: oklch(0.16 0.01 260);
+    \\  --pre-text: oklch(0.88 0.01 260);
+    \\  --space-xs: 4px;
+    \\  --space-sm: 8px;
+    \\  --space-md: 16px;
+    \\  --space-lg: 24px;
+    \\  --space-xl: 32px;
+    \\  --space-2xl: 48px;
+    \\  --space-3xl: 64px;
+    \\  --radius: 8px;
+    \\  --radius-sm: 6px;
+    \\  --content-max: 680px;
+    \\  --sidebar-width: 220px;
     \\}
+    \\
+    \\html { scroll-behavior: smooth; }
     \\
     \\body {
     \\  background: var(--bg);
     \\  color: var(--text);
-    \\  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    \\  font-family: 'Source Sans 3', system-ui, -apple-system, sans-serif;
+    \\  font-size: 16px;
     \\  line-height: 1.7;
     \\  min-height: 100vh;
+    \\  -webkit-font-smoothing: antialiased;
+    \\  -moz-osx-font-smoothing: grayscale;
     \\}
     \\
-    \\.layout {
-    \\  max-width: 720px;
+    \\::selection {
+    \\  background: oklch(0.85 0.08 160);
+    \\  color: var(--text);
+    \\}
+    \\
+    \\.layout { margin: 0; padding: 0; }
+    \\
+    \\.page-wrapper {
+    \\  display: flex;
+    \\  flex-direction: column;
+    \\  max-width: 960px;
     \\  margin: 0 auto;
-    \\  padding: 48px 24px 96px;
+    \\  padding: var(--space-lg) var(--space-md);
+    \\  gap: var(--space-lg);
     \\}
     \\
-    \\/* Typography */
+    \\.toc {
+    \\  background: var(--bg-page);
+    \\  border: 1px solid var(--border);
+    \\  border-radius: var(--radius);
+    \\  padding: var(--space-md) var(--space-lg);
+    \\}
+    \\
+    \\.toc-header {
+    \\  font-family: 'Source Sans 3', system-ui, sans-serif;
+    \\  font-weight: 600;
+    \\  font-size: 0.8em;
+    \\  color: var(--text-muted);
+    \\  text-transform: uppercase;
+    \\  letter-spacing: 0.08em;
+    \\  margin-bottom: 12px;
+    \\  padding-bottom: var(--space-sm);
+    \\  border-bottom: 1px solid var(--border);
+    \\}
+    \\
+    \\.toc ul { list-style: none; }
+    \\.toc li { margin: 0; }
+    \\
+    \\.toc a {
+    \\  display: block;
+    \\  padding: 5px 12px;
+    \\  color: var(--text-secondary);
+    \\  font-size: 0.875em;
+    \\  font-weight: 400;
+    \\  text-decoration: none;
+    \\  border-radius: var(--radius-sm);
+    \\  transition: background 0.15s ease, color 0.15s ease;
+    \\}
+    \\
+    \\.toc a:hover {
+    \\  color: var(--accent-text);
+    \\  background: var(--accent-subtle);
+    \\}
+    \\
+    \\.toc-h1 a {
+    \\  font-weight: 600;
+    \\  color: var(--text);
+    \\}
+    \\
+    \\.toc-h2 a { padding-left: var(--space-lg); }
+    \\.toc-h3 a { padding-left: var(--space-xl); font-size: 0.825em; }
+    \\
+    \\.page-content {
+    \\  flex: 1;
+    \\  max-width: var(--content-max);
+    \\  padding: 0;
+    \\}
+    \\
+    \\@media (min-width: 900px) {
+    \\  .page-wrapper {
+    \\    flex-direction: row;
+    \\    max-width: 1060px;
+    \\    padding: var(--space-2xl) var(--space-xl);
+    \\    gap: var(--space-2xl);
+    \\  }
+    \\  .toc {
+    \\    position: sticky;
+    \\    top: var(--space-xl);
+    \\    width: var(--sidebar-width);
+    \\    height: fit-content;
+    \\    max-height: calc(100vh - var(--space-3xl));
+    \\    overflow-y: auto;
+    \\    flex-shrink: 0;
+    \\    border: none;
+    \\    background: transparent;
+    \\    padding: 0;
+    \\    border-radius: 0;
+    \\  }
+    \\  .toc-header {
+    \\    border-bottom: none;
+    \\    padding-bottom: var(--space-xs);
+    \\  }
+    \\  .page-content {
+    \\    padding-bottom: 120px;
+    \\    min-width: 0;
+    \\  }
+    \\}
+    \\
+    \\@media (min-width: 600px) and (max-width: 899px) {
+    \\  .page-wrapper { padding: var(--space-xl) var(--space-lg); }
+    \\}
+    \\
     \\.title {
-    \\  font-size: 2em;
-    \\  font-weight: 700;
-    \\  letter-spacing: -0.02em;
-    \\  margin-bottom: 16px;
-    \\  line-height: 1.2;
+    \\  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+    \\  font-size: clamp(2em, 4vw, 2.5em);
+    \\  font-weight: 800;
+    \\  letter-spacing: -0.03em;
+    \\  line-height: 1.15;
+    \\  color: var(--text);
+    \\  margin-bottom: var(--space-md);
     \\}
     \\
     \\.subtitle {
-    \\  font-size: 1.4em;
-    \\  font-weight: 600;
-    \\  margin-top: 32px;
+    \\  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+    \\  font-size: 1.3em;
+    \\  font-weight: 700;
+    \\  letter-spacing: -0.02em;
+    \\  color: var(--text);
+    \\  margin-top: var(--space-2xl);
     \\  margin-bottom: 12px;
-    \\  letter-spacing: -0.01em;
     \\}
     \\
     \\.heading {
-    \\  font-size: 1.15em;
+    \\  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+    \\  font-size: 1.1em;
     \\  font-weight: 600;
-    \\  margin-top: 24px;
-    \\  margin-bottom: 8px;
+    \\  color: var(--text);
+    \\  margin-top: var(--space-lg);
+    \\  margin-bottom: var(--space-sm);
     \\}
     \\
-    \\p { margin-bottom: 16px; }
-    \\strong { font-weight: 600; }
+    \\p {
+    \\  margin-bottom: var(--space-md);
+    \\  color: var(--text-secondary);
+    \\  line-height: 1.75;
+    \\}
     \\
-    \\/* Links */
-    \\a { color: var(--accent); text-decoration: none; }
-    \\a:hover { color: var(--accent-hover); text-decoration: underline; }
+    \\strong { font-weight: 600; color: var(--text); }
     \\
-    \\/* Lists */
-    \\ul, ol { margin-bottom: 16px; padding-left: 24px; }
-    \\li { margin-bottom: 6px; }
-    \\li::marker { color: var(--muted); }
+    \\a {
+    \\  color: var(--accent);
+    \\  text-decoration: underline;
+    \\  text-decoration-color: oklch(0.7 0.08 160);
+    \\  text-underline-offset: 2px;
+    \\  transition: color 0.15s ease, text-decoration-color 0.15s ease;
+    \\}
     \\
-    \\/* Code */
+    \\a:hover {
+    \\  color: var(--accent-hover);
+    \\  text-decoration-color: var(--accent-hover);
+    \\}
+    \\
+    \\ul, ol {
+    \\  margin-bottom: var(--space-md);
+    \\  padding-left: var(--space-lg);
+    \\}
+    \\
+    \\li {
+    \\  margin-bottom: var(--space-sm);
+    \\  color: var(--text-secondary);
+    \\  line-height: 1.7;
+    \\}
+    \\
+    \\li::marker { color: var(--text-muted); }
+    \\
     \\code {
-    \\  font-family: 'SF Mono', ui-monospace, 'Cascadia Code', Menlo, monospace;
-    \\  font-size: 0.875em;
+    \\  font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Code', monospace;
+    \\  font-size: 0.85em;
     \\  background: var(--code-bg);
+    \\  border: 1px solid var(--border);
     \\  border-radius: 4px;
-    \\  padding: 2px 6px;
+    \\  padding: 1px 6px;
+    \\  color: var(--code-text);
     \\}
     \\
     \\pre {
     \\  background: var(--pre-bg);
-    \\  color: var(--pre-text);
-    \\  border-radius: 8px;
-    \\  padding: 16px 20px;
+    \\  border-radius: var(--radius);
+    \\  padding: var(--space-md) var(--space-lg);
     \\  overflow-x: auto;
-    \\  margin-bottom: 16px;
-    \\  font-size: 0.875em;
-    \\  line-height: 1.6;
+    \\  margin-bottom: var(--space-md);
+    \\  font-size: 0.85em;
+    \\  line-height: 1.65;
     \\}
     \\
     \\pre code {
     \\  background: none;
+    \\  border: none;
     \\  padding: 0;
-    \\  color: inherit;
+    \\  color: var(--pre-text);
     \\  font-size: inherit;
     \\}
     \\
-    \\/* Blockquote */
     \\blockquote {
-    \\  border-left: 3px solid var(--accent);
-    \\  padding: 8px 16px;
-    \\  margin-bottom: 16px;
-    \\  color: var(--muted);
-    \\  background: var(--code-bg);
-    \\  border-radius: 0 6px 6px 0;
+    \\  background: var(--accent-subtle);
+    \\  padding: 14px var(--space-lg);
+    \\  margin-bottom: var(--space-md);
+    \\  color: var(--text-secondary);
+    \\  border-radius: var(--radius);
+    \\  font-style: italic;
     \\}
     \\
-    \\/* Horizontal rule */
-    \\hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+    \\blockquote p { color: var(--text-secondary); margin-bottom: 0; }
     \\
-    \\/* Tables */
-    \\table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 0.925em; }
-    \\th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
-    \\th { font-weight: 600; color: var(--muted); font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.05em; }
+    \\hr {
+    \\  border: none;
+    \\  height: 1px;
+    \\  background: var(--border);
+    \\  margin: var(--space-2xl) 0;
+    \\}
+    \\
+    \\table {
+    \\  width: 100%;
+    \\  border-collapse: collapse;
+    \\  margin-bottom: var(--space-md);
+    \\  font-size: 0.9em;
+    \\}
+    \\
+    \\th, td {
+    \\  padding: 10px 14px;
+    \\  text-align: left;
+    \\  border-bottom: 1px solid var(--border);
+    \\}
+    \\
+    \\th {
+    \\  font-weight: 600;
+    \\  color: var(--text-muted);
+    \\  font-size: 0.8em;
+    \\  text-transform: uppercase;
+    \\  letter-spacing: 0.05em;
+    \\}
+    \\
+    \\td { color: var(--text-secondary); }
+    \\tr:last-child td { border-bottom: none; }
 ;
 
 fn generateRoutes(init: std.process.Init) !void {
