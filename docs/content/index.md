@@ -9,7 +9,7 @@ A static site generator that converts Markdown to [merjs](https://github.com/iva
 
 Write your content in Markdown, and Nuri generates type-safe Zig code with routing, hot reload, and semantic HTML — all powered by merjs. Deploy to Cloudflare Workers, VPS, or anywhere.
 
-🚀 Successfully deployed via Cloudflare Workers!
+🚀 Successfully deployed via Cloudflare Workers with auto-installed Zig!
 
 ## Installation
 
