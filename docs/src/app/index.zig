@@ -33,6 +33,7 @@ fn page() h.Node {
                 h.li(.{ .class = "toc-h3" }, .{h.a(.{ .href = "#static-site-cloudflare-pages-netlify-etc" }, "Static Site (Cloudflare Pages, Netlify, etc.)")}),
                 h.li(.{ .class = "toc-h3" }, .{h.a(.{ .href = "#server-vps-flyio-etc" }, "Server (VPS, Fly.io, etc.)")}),
                 h.li(.{ .class = "toc-h2" }, .{h.a(.{ .href = "#customization" }, "Customization")}),
+                h.li(.{ .class = "toc-h2" }, .{h.a(.{ .href = "#agent-skill" }, "Agent Skill")}),
             }),
         }),
         h.div(.{ .class = "page-content" }, .{
@@ -192,6 +193,16 @@ fn page() h.Node {
                 h.text("Edit "),
                 h.code(.{}, "public/styles.css"),
                 h.text(" to customize styling — this file won't be overwritten."),
+            }),
+            h.h2(.{ .class = "subtitle", .id = "agent-skill" }, "Agent Skill"),
+            h.p(.{}, .{
+                h.text("Nuri includes a Vercel Agent Skill for AI assistants. Install it with:"),
+            }),
+            h.pre(.{}, .{h.code(.{}, "npx skills add https://github.com/ivanleomk/nuri/tree/main/nuri")}),
+            h.p(.{}, .{
+                h.text("The skill provides project patterns, routing conventions, development workflows, and deployment configurations for AI tools that support the "),
+                h.a(.{ .href = "https://agentskills.io/specification" }, "Agent Skills standard"),
+                h.text("."),
             }),
             h.p(.{}, .{
                 h.strong(.{}, "GitHub:"),

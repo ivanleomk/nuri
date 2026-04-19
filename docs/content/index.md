@@ -142,6 +142,16 @@ zig build -Doptimize=ReleaseFast
 
 Edit `public/styles.css` to customize styling — this file won't be overwritten.
 
+## Agent Skill
+
+Nuri includes a Vercel Agent Skill for AI assistants. Install it with:
+
+```bash
+npx skills add https://github.com/ivanleomk/nuri/tree/main/nuri
+```
+
+The skill provides project patterns, routing conventions, development workflows, and deployment configurations for AI tools that support the [Agent Skills standard](https://agentskills.io/specification).
+
 ---
 
 **GitHub:** [github.com/ivanleomk/nuri](https://github.com/ivanleomk/nuri)
