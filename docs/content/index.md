@@ -128,14 +128,19 @@ my-site/
 Deploy as a WebAssembly edge function on Cloudflare's global network:
 
 ```bash
-# 1. Build the WASM bundle
-zig build worker
-
-# 2. Deploy with Wrangler
+# From the project root
 npx wrangler deploy
 ```
 
-The site runs as a WASM worker — fast, globally distributed, and scales automatically.
+Or manually:
+```bash
+cd docs
+zig build worker
+cd ..
+npx wrangler deploy --no-build
+```
+
+The site runs as a WASM worker (~12KB gzipped) — fast, globally distributed, and scales automatically.
 
 ### VPS / Server
 
