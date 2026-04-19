@@ -3,14 +3,9 @@ name = "nuri-docs"
 main = "docs/worker/index.js"
 compatibility_date = "2024-12-01"
 
-# Build WASM before deploying
+# Build WASM before deploying (runs from project root)
 [build]
 command = "cd docs && zig build worker"
-
-# WASM module rules
-[[rules]]
-type = "CompiledWasm"
-globs = ["docs/**/*.wasm"]
 
 # Optional: Add custom domain
 # routes = [
