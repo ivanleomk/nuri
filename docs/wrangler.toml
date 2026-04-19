@@ -1,7 +1,7 @@
 # Cloudflare Workers configuration for nuri docs site
 # Deploy from the docs/ directory
 
-name = "nuri-docs"
+name = "nuri"
 main = "worker/index.js"
 compatibility_date = "2024-12-01"
 
