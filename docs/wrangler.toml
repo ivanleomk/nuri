@@ -13,7 +13,7 @@ directory = "public"
 [build]
 command = "chmod +x install-zig.sh && ./install-zig.sh"
 
-# Optional: Add custom domain
-# routes = [
-#   { pattern = "docs.yourdomain.com", custom_domain = true }
-# ]
+# Custom domain configuration
+routes = [
+  { pattern = "nuri.ivanleo.com", custom_domain = true }
+]
