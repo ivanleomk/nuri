@@ -15,6 +15,9 @@ pub fn render(req: mer.Request) mer.Response {
 fn page() h.Node {
     return h.div(.{ .class = "page" }, .{
         h.h1(.{ .class = "title" }, "Installation"),
+        h.p(.{}, .{
+            h.text("These are instructions on how to use MerjS"),
+        }),
         h.h2(.{ .class = "subtitle" }, "Pre-built Binary (macOS Apple Silicon)"),
         h.pre(.{}, .{h.code(.{}, "curl -L https://github.com/ivanleomk/nuri/releases/latest/download/nuri-aarch64-macos -o nuri\nchmod +x nuri\nsudo mv nuri /usr/local/bin/")}),
         h.h2(.{ .class = "subtitle" }, "Build from Source"),

@@ -5,6 +5,8 @@ description: How to install Nuri
 
 # Installation
 
+These are instructions on how to use MerjS
+
 ## Pre-built Binary (macOS Apple Silicon)
 
 ```bash

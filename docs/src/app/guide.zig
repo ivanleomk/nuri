@@ -21,20 +21,25 @@ fn page() h.Node {
             h.code(.{}, "content/"),
             h.text(" becomes a route:"),
         }),
-        h.p(.{}, .{
-            h.text("| File | Route | |---|---| | "),
-            h.code(.{}, "content/index.md"),
-            h.text(" | "),
-            h.code(.{}, "/"),
-            h.text(" | | "),
-            h.code(.{}, "content/about.md"),
-            h.text(" | "),
-            h.code(.{}, "/about"),
-            h.text(" | | "),
-            h.code(.{}, "content/blog/first.md"),
-            h.text(" | "),
-            h.code(.{}, "/blog/first"),
-            h.text(" |"),
+        h.table(.{}, .{
+            h.thead(.{}, .{h.tr(.{}, .{
+                h.th(.{}, "File"),
+                h.th(.{}, "Route"),
+            })}),
+            h.tbody(.{}, .{
+                h.tr(.{}, .{
+                    h.td(.{}, "`content/index.md`"),
+                    h.td(.{}, "`/`"),
+                }),
+                h.tr(.{}, .{
+                    h.td(.{}, "`content/about.md`"),
+                    h.td(.{}, "`/about`"),
+                }),
+                h.tr(.{}, .{
+                    h.td(.{}, "`content/blog/first.md`"),
+                    h.td(.{}, "`/blog/first`"),
+                }),
+            }),
         }),
         h.p(.{}, .{
             h.text("Every site "),
