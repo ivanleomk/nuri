@@ -29,14 +29,13 @@ Wrangler will automatically:
 
 For automatic deployment on every push to `main`, use the included GitHub Actions workflow:
 
-1. Add your Cloudflare credentials to GitHub Secrets:
+1. Add your Cloudflare API token to GitHub Secrets:
    - Go to **Settings → Secrets and variables → Actions**
    - Add `CLOUDFLARE_API_TOKEN` - Create at [dash.cloudflare.com/profile/api-tokens](https://dash.cloudflare.com/profile/api-tokens) with permissions:
      - Account: Cloudflare Workers Scripts (Edit)
      - Account: Cloudflare Pages (Edit)
-     - User: User Details (Read)
      - Account: Account Settings (Read)
-   - Add `CLOUDFLARE_ACCOUNT_ID` - Find at [dash.cloudflare.com](https://dash.cloudflare.com) (right sidebar)
+     - User: User Details (Read)
 
 2. The workflow at `.github/workflows/deploy.yml` will:
    - Trigger on every push to `main` that changes `docs/**`

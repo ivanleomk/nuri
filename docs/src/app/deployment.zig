@@ -75,7 +75,7 @@ fn page() h.Node {
                 h.text(", use the included GitHub Actions workflow:"),
             }),
             h.ol(.{}, .{
-                h.li(.{}, "Add your Cloudflare credentials to GitHub Secrets:"),
+                h.li(.{}, "Add your Cloudflare API token to GitHub Secrets:"),
                 h.li(.{}, .{
                     h.text("Go to "),
                     h.strong(.{}, "Settings → Secrets and variables → Actions"),
@@ -89,15 +89,8 @@ fn page() h.Node {
                 }),
                 h.li(.{}, "Account: Cloudflare Workers Scripts (Edit)"),
                 h.li(.{}, "Account: Cloudflare Pages (Edit)"),
-                h.li(.{}, "User: User Details (Read)"),
                 h.li(.{}, "Account: Account Settings (Read)"),
-                h.li(.{}, .{
-                    h.text("Add "),
-                    h.code(.{}, "CLOUDFLARE_ACCOUNT_ID"),
-                    h.text(" - Find at "),
-                    h.a(.{ .href = "https://dash.cloudflare.com" }, "dash.cloudflare.com"),
-                    h.text(" (right sidebar)"),
-                }),
+                h.li(.{}, "User: User Details (Read)"),
             }),
             h.ol(.{}, .{
                 h.li(.{}, .{

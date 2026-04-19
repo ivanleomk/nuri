@@ -44,7 +44,7 @@ fn page() h.Node {
                 h.text(" pages."),
             }),
             h.p(.{}, .{
-                h.text("Write your content in Markdown, and Nuri generates type-safe Zig code with routing, hot reload, and semantic HTML — all powered by merjs."),
+                h.text("Write your content in Markdown, and Nuri generates type-safe Zig code with routing, hot reload, and semantic HTML — all powered by merjs. Deploy to Cloudflare Workers, VPS, or anywhere."),
             }),
             h.h2(.{ .class = "subtitle", .id = "installation" }, "Installation"),
             h.h3(.{ .class = "heading", .id = "pre-built-binary-macos-apple-silicon" }, "Pre-built Binary (macOS Apple Silicon)"),
