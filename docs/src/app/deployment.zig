@@ -22,6 +22,7 @@ fn page() h.Node {
                 h.li(.{ .class = "toc-h1" }, .{h.a(.{ .href = "#deployment" }, "Deployment")}),
                 h.li(.{ .class = "toc-h2" }, .{h.a(.{ .href = "#cloudflare-workers-recommended" }, "Cloudflare Workers (Recommended)")}),
                 h.li(.{ .class = "toc-h3" }, .{h.a(.{ .href = "#quick-deploy" }, "Quick Deploy")}),
+                h.li(.{ .class = "toc-h3" }, .{h.a(.{ .href = "#automated-deploy-with-github-actions" }, "Automated Deploy with GitHub Actions")}),
                 h.li(.{ .class = "toc-h3" }, .{h.a(.{ .href = "#manual-build" }, "Manual Build")}),
                 h.li(.{ .class = "toc-h3" }, .{h.a(.{ .href = "#configuration" }, "Configuration")}),
                 h.li(.{ .class = "toc-h3" }, .{h.a(.{ .href = "#what-gets-deployed" }, "What Gets Deployed")}),
@@ -66,6 +67,49 @@ fn page() h.Node {
                     h.code(.{}, "public/"),
                 }),
                 h.li(.{}, "Deploy to Cloudflare's edge network"),
+            }),
+            h.h3(.{ .class = "heading", .id = "automated-deploy-with-github-actions" }, "Automated Deploy with GitHub Actions"),
+            h.p(.{}, .{
+                h.text("For automatic deployment on every push to "),
+                h.code(.{}, "main"),
+                h.text(", use the included GitHub Actions workflow:"),
+            }),
+            h.ol(.{}, .{
+                h.li(.{}, "Add your Cloudflare API token to GitHub Secrets:"),
+                h.li(.{}, .{
+                    h.text("Go to "),
+                    h.strong(.{}, "Settings → Secrets and variables → Actions"),
+                }),
+                h.li(.{}, .{
+                    h.text("Add "),
+                    h.code(.{}, "CLOUDFLARE_API_TOKEN"),
+                    h.text(" with your token from "),
+                    h.a(.{ .href = "https://dash.cloudflare.com" }, "dash.cloudflare.com"),
+                }),
+            }),
+            h.ol(.{}, .{
+                h.li(.{}, .{
+                    h.text("The workflow at "),
+                    h.code(.{}, ".github/workflows/deploy.yml"),
+                    h.text(" will:"),
+                }),
+                h.li(.{}, .{
+                    h.text("Trigger on every push to "),
+                    h.code(.{}, "main"),
+                    h.text(" that changes "),
+                    h.code(.{}, "docs/**"),
+                }),
+                h.li(.{}, "Set up Zig 0.16.0"),
+                h.li(.{}, "Build nuri binary"),
+                h.li(.{}, "Build the docs"),
+                h.li(.{}, "Deploy to Cloudflare Workers"),
+            }),
+            h.ol(.{}, .{
+                h.li(.{}, "Commit and push:"),
+            }),
+            h.pre(.{}, .{h.code(.{}, "git add .\ngit push origin main")}),
+            h.p(.{}, .{
+                h.text("The site will automatically deploy! 🚀"),
             }),
             h.h3(.{ .class = "heading", .id = "manual-build" }, "Manual Build"),
             h.p(.{}, .{

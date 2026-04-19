@@ -25,6 +25,29 @@ Wrangler will automatically:
 2. Upload static assets from `public/`
 3. Deploy to Cloudflare's edge network
 
+### Automated Deploy with GitHub Actions
+
+For automatic deployment on every push to `main`, use the included GitHub Actions workflow:
+
+1. Add your Cloudflare API token to GitHub Secrets:
+   - Go to **Settings → Secrets and variables → Actions**
+   - Add `CLOUDFLARE_API_TOKEN` with your token from [dash.cloudflare.com](https://dash.cloudflare.com)
+
+2. The workflow at `.github/workflows/deploy.yml` will:
+   - Trigger on every push to `main` that changes `docs/**`
+   - Set up Zig 0.16.0
+   - Build nuri binary
+   - Build the docs
+   - Deploy to Cloudflare Workers
+
+3. Commit and push:
+```bash
+git add .
+git push origin main
+```
+
+The site will automatically deploy! 🚀
+
 ### Manual Build
 
 If you want to build first, then deploy:
