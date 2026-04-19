@@ -2,8 +2,8 @@ const mer = @import("mer");
 const h = mer.h;
 
 pub const meta: mer.Meta = .{
-    .title = "Nuri - Static Site Generator for merjs",
-    .description = "Convert Markdown to type-safe Zig web pages",
+    .title = "Nuri - Documentation",
+    .description = "Complete guide to Nuri static site generator",
 };
 
 const page_node = page();
@@ -13,66 +13,190 @@ pub fn render(req: mer.Request) mer.Response {
 }
 
 fn page() h.Node {
-    return h.div(.{ .class = "page" }, .{
-        h.h1(.{ .class = "title" }, "Nuri"),
-        h.p(.{}, .{
-            h.text("A static site generator that converts Markdown to "),
-            h.a(.{ .href = "https://github.com/ivanleomk/merjs" }, "merjs"),
-            h.text(" pages."),
+    return h.div(.{ .class = "page-wrapper" }, .{
+        h.nav(.{ .class = "toc" }, .{
+            h.div(.{ .class = "toc-header" }, "On this page"),
+            h.ul(.{}, .{
+                h.li(.{ .class = "toc-h1" }, .{h.a(.{ .href = "#nuri" }, "Nuri")}),
+                h.li(.{ .class = "toc-h2" }, .{h.a(.{ .href = "#installation" }, "Installation")}),
+                h.li(.{ .class = "toc-h3" }, .{h.a(.{ .href = "#pre-built-binary-macos-apple-silicon" }, "Pre-built Binary (macOS Apple Silicon)")}),
+                h.li(.{ .class = "toc-h3" }, .{h.a(.{ .href = "#build-from-source" }, "Build from Source")}),
+                h.li(.{ .class = "toc-h2" }, .{h.a(.{ .href = "#quick-start" }, "Quick Start")}),
+                h.li(.{ .class = "toc-h2" }, .{h.a(.{ .href = "#how-it-works" }, "How It Works")}),
+                h.li(.{ .class = "toc-h2" }, .{h.a(.{ .href = "#commands" }, "Commands")}),
+                h.li(.{ .class = "toc-h2" }, .{h.a(.{ .href = "#writing-content" }, "Writing Content")}),
+                h.li(.{ .class = "toc-h3" }, .{h.a(.{ .href = "#file-based-routing" }, "File-based Routing")}),
+                h.li(.{ .class = "toc-h3" }, .{h.a(.{ .href = "#frontmatter" }, "Frontmatter")}),
+                h.li(.{ .class = "toc-h3" }, .{h.a(.{ .href = "#supported-markdown" }, "Supported Markdown")}),
+                h.li(.{ .class = "toc-h2" }, .{h.a(.{ .href = "#project-structure" }, "Project Structure")}),
+                h.li(.{ .class = "toc-h2" }, .{h.a(.{ .href = "#deployment" }, "Deployment")}),
+                h.li(.{ .class = "toc-h3" }, .{h.a(.{ .href = "#static-site-cloudflare-pages-netlify-etc" }, "Static Site (Cloudflare Pages, Netlify, etc.)")}),
+                h.li(.{ .class = "toc-h3" }, .{h.a(.{ .href = "#server-vps-flyio-etc" }, "Server (VPS, Fly.io, etc.)")}),
+                h.li(.{ .class = "toc-h2" }, .{h.a(.{ .href = "#customization" }, "Customization")}),
+            }),
         }),
-        h.p(.{}, .{
-            h.text("Write your content in Markdown, and Nuri generates type-safe Zig code with routing, hot reload, and semantic HTML — all powered by merjs."),
-        }),
-        h.h2(.{ .class = "subtitle" }, "Quick Start"),
-        h.p(.{}, .{
-            h.text("Install the latest binary:"),
-        }),
-        h.pre(.{}, .{h.code(.{}, "curl -L https://github.com/ivanleomk/nuri/releases/latest/download/nuri-aarch64-macos -o nuri\nchmod +x nuri\nsudo mv nuri /usr/local/bin/")}),
-        h.p(.{}, .{
-            h.text("Create and run a project:"),
-        }),
-        h.pre(.{}, .{h.code(.{}, "nuri init my-site\ncd my-site\nnuri dev")}),
-        h.p(.{}, .{
-            h.text("Open "),
-            h.strong(.{}, "http://localhost:3000"),
-            h.text(" to see your site."),
-        }),
-        h.h2(.{ .class = "subtitle" }, "How It Works"),
-        h.pre(.{}, .{h.code(.{}, "content/           →  nuri build  →  src/app/            →  zig build  →  binary\n  index.md                           index.zig\n  about.md                           about.zig\n  blog/first.md                      blog/first.zig\n                                   src/generated/\n                                     routes.zig")}),
-        h.ol(.{}, .{
-            h.li(.{}, .{
-                h.text("You write Markdown in "),
+        h.div(.{ .class = "page-content" }, .{
+            h.h1(.{ .class = "title", .id = "nuri" }, "Nuri"),
+            h.p(.{}, .{
+                h.text("A static site generator that converts Markdown to "),
+                h.a(.{ .href = "https://github.com/ivanleomk/merjs" }, "merjs"),
+                h.text(" pages."),
+            }),
+            h.p(.{}, .{
+                h.text("Write your content in Markdown, and Nuri generates type-safe Zig code with routing, hot reload, and semantic HTML — all powered by merjs."),
+            }),
+            h.h2(.{ .class = "subtitle", .id = "installation" }, "Installation"),
+            h.h3(.{ .class = "heading", .id = "pre-built-binary-macos-apple-silicon" }, "Pre-built Binary (macOS Apple Silicon)"),
+            h.pre(.{}, .{h.code(.{}, "curl -L https://github.com/ivanleomk/nuri/releases/latest/download/nuri-aarch64-macos -o nuri\nchmod +x nuri\nsudo mv nuri /usr/local/bin/")}),
+            h.h3(.{ .class = "heading", .id = "build-from-source" }, "Build from Source"),
+            h.p(.{}, .{
+                h.text("Requires "),
+                h.a(.{ .href = "https://ziglang.org/download/" }, "Zig 0.16+"),
+                h.text(":"),
+            }),
+            h.pre(.{}, .{h.code(.{}, "git clone https://github.com/ivanleomk/nuri.git\ncd nuri\nzig build -Doptimize=ReleaseSafe\n# Binary is at zig-out/bin/nuri")}),
+            h.h2(.{ .class = "subtitle", .id = "quick-start" }, "Quick Start"),
+            h.pre(.{}, .{h.code(.{}, "nuri init my-site\ncd my-site\nnuri dev")}),
+            h.p(.{}, .{
+                h.text("Open "),
+                h.strong(.{}, "http://localhost:3000"),
+                h.text(" to see your site."),
+            }),
+            h.h2(.{ .class = "subtitle", .id = "how-it-works" }, "How It Works"),
+            h.pre(.{}, .{h.code(.{}, "content/           →  nuri build  →  src/app/            →  zig build  →  binary\n  index.md                           index.zig\n  about.md                           about.zig\n  blog/first.md                      blog/first.zig\n                                    src/generated/\n                                      routes.zig")}),
+            h.ol(.{}, .{
+                h.li(.{}, .{
+                    h.text("Write Markdown in "),
+                    h.code(.{}, "content/"),
+                }),
+                h.li(.{}, .{
+                    h.code(.{}, "nuri build"),
+                    h.text(" generates merjs page modules in "),
+                    h.code(.{}, "src/app/"),
+                }),
+                h.li(.{}, .{
+                    h.code(.{}, "src/generated/routes.zig"),
+                    h.text(" is auto-generated with all routes"),
+                }),
+                h.li(.{}, .{
+                    h.code(.{}, "zig build"),
+                    h.text(" compiles to a single binary server"),
+                }),
+            }),
+            h.h2(.{ .class = "subtitle", .id = "commands" }, "Commands"),
+            h.table(.{}, .{
+                h.thead(.{}, .{h.tr(.{}, .{
+                    h.th(.{}, "Command"),
+                    h.th(.{}, "Description"),
+                })}),
+                h.tbody(.{}, .{
+                    h.tr(.{}, .{
+                        h.td(.{}, "`nuri init <name>`"),
+                        h.td(.{}, "Create new project"),
+                    }),
+                    h.tr(.{}, .{
+                        h.td(.{}, "`nuri build`"),
+                        h.td(.{}, "Convert Markdown to merjs pages"),
+                    }),
+                    h.tr(.{}, .{
+                        h.td(.{}, "`nuri dev`"),
+                        h.td(.{}, "Watch, rebuild, and serve on :3000"),
+                    }),
+                    h.tr(.{}, .{
+                        h.td(.{}, "`nuri help`"),
+                        h.td(.{}, "Show help"),
+                    }),
+                }),
+            }),
+            h.h2(.{ .class = "subtitle", .id = "writing-content" }, "Writing Content"),
+            h.h3(.{ .class = "heading", .id = "file-based-routing" }, "File-based Routing"),
+            h.p(.{}, .{
+                h.text("Each Markdown file in "),
                 h.code(.{}, "content/"),
+                h.text(" becomes a route:"),
             }),
-            h.li(.{}, .{
-                h.code(.{}, "nuri build"),
-                h.text(" generates a merjs page module in "),
-                h.code(.{}, "src/app/"),
-                h.text(" for each file"),
+            h.table(.{}, .{
+                h.thead(.{}, .{h.tr(.{}, .{
+                    h.th(.{}, "File"),
+                    h.th(.{}, "Route"),
+                })}),
+                h.tbody(.{}, .{
+                    h.tr(.{}, .{
+                        h.td(.{}, "`content/index.md`"),
+                        h.td(.{}, "`/`"),
+                    }),
+                    h.tr(.{}, .{
+                        h.td(.{}, "`content/about.md`"),
+                        h.td(.{}, "`/about`"),
+                    }),
+                    h.tr(.{}, .{
+                        h.td(.{}, "`content/blog/first.md`"),
+                        h.td(.{}, "`/blog/first`"),
+                    }),
+                }),
             }),
-            h.li(.{}, .{
-                h.text("It also generates "),
-                h.code(.{}, "src/generated/routes.zig"),
-                h.text(" with all routes wired up"),
+            h.p(.{}, .{
+                h.text("Every site "),
+                h.strong(.{}, "must"),
+                h.text(" have "),
+                h.code(.{}, "content/index.md"),
+                h.text(" (homepage)."),
             }),
-            h.li(.{}, .{
-                h.code(.{}, "zig build"),
-                h.text(" compiles everything into a single binary server"),
+            h.h3(.{ .class = "heading", .id = "frontmatter" }, "Frontmatter"),
+            h.p(.{}, .{
+                h.text("Add metadata at the top of Markdown files:"),
             }),
-        }),
-        h.h2(.{ .class = "subtitle" }, "Learn More"),
-        h.ul(.{}, .{
-            h.li(.{}, .{
-                h.a(.{ .href = "/install" }, "Installation"),
-                h.text(" — download or build from source"),
+            h.pre(.{}, .{h.code(.{}, "---\ntitle: About Us\ndescription: Learn more about our team\n---\n\n# About Us\n\nYour content here...")}),
+            h.h3(.{ .class = "heading", .id = "supported-markdown" }, "Supported Markdown"),
+            h.ul(.{}, .{
+                h.li(.{}, .{
+                    h.text("Headings ("),
+                    h.code(.{}, "# H1"),
+                    h.text(" through "),
+                    h.code(.{}, "###### H6"),
+                    h.text(")"),
+                }),
+                h.li(.{}, "Paragraphs"),
+                h.li(.{}, .{
+                    h.strong(.{}, "Bold"),
+                    h.text(" and "),
+                    h.em(.{}, "italic"),
+                    h.text(" text"),
+                }),
+                h.li(.{}, .{
+                    h.code(.{}, "Inline code"),
+                }),
+                h.li(.{}, "Code blocks with language hints"),
+                h.li(.{}, "Unordered and ordered lists"),
+                h.li(.{}, .{
+                    h.a(.{ .href = "https://example.com" }, "Links"),
+                    h.text(" — local "),
+                    h.code(.{}, ".md"),
+                    h.text(" links auto-transform to routes"),
+                }),
             }),
-            h.li(.{}, .{
-                h.a(.{ .href = "/guide" }, "Writing Content"),
-                h.text(" — Markdown, frontmatter, and routing"),
+            h.h2(.{ .class = "subtitle", .id = "project-structure" }, "Project Structure"),
+            h.pre(.{}, .{h.code(.{}, "my-site/\n├── build.zig              # Zig build configuration\n├── build.zig.zon          # Dependencies\n├── nuri.config.json       # Site metadata\n├── content/               # Markdown files\n│   └── index.md\n├── public/               # Static assets (CSS, images)\n└── src/\n    ├── main.zig          # Server entry point\n    ├── app/              # Generated page modules\n    └── generated/\n        └── routes.zig    # Auto-generated routes")}),
+            h.h2(.{ .class = "subtitle", .id = "deployment" }, "Deployment"),
+            h.h3(.{ .class = "heading", .id = "static-site-cloudflare-pages-netlify-etc" }, "Static Site (Cloudflare Pages, Netlify, etc.)"),
+            h.pre(.{}, .{h.code(.{}, "zig build prod    # Compiles + prerenders to dist/")}),
+            h.p(.{}, .{
+                h.text("Upload the "),
+                h.code(.{}, "dist/"),
+                h.text(" folder to any static host."),
             }),
-            h.li(.{}, .{
-                h.a(.{ .href = "/commands" }, "Commands"),
-                h.text(" — CLI reference"),
+            h.h3(.{ .class = "heading", .id = "server-vps-flyio-etc" }, "Server (VPS, Fly.io, etc.)"),
+            h.pre(.{}, .{h.code(.{}, "zig build -Doptimize=ReleaseFast\n# Deploy zig-out/bin/nuri-site")}),
+            h.h2(.{ .class = "subtitle", .id = "customization" }, "Customization"),
+            h.p(.{}, .{
+                h.text("Edit "),
+                h.code(.{}, "public/styles.css"),
+                h.text(" to customize styling — this file won't be overwritten."),
+            }),
+            h.p(.{}, .{
+                h.strong(.{}, "GitHub:"),
+                h.text(" "),
+                h.a(.{ .href = "https://github.com/ivanleomk/nuri" }, "github.com/ivanleomk/nuri"),
             }),
         }),
     });

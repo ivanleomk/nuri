@@ -4,6 +4,7 @@ pub const Node = union(enum) {
     document: []const Node,
     heading: struct {
         level: u8,
+        id: ?[]const u8,
         content: []const Node,
     },
     paragraph: []const Node,
@@ -33,7 +34,10 @@ pub const Node = union(enum) {
     pub fn deinit(self: Node, allocator: std.mem.Allocator) void {
         switch (self) {
             .document => |nodes| deinitNodes(nodes, allocator),
-            .heading => |h| deinitNodes(h.content, allocator),
+            .heading => |h| {
+                if (h.id) |id| allocator.free(id);
+                deinitNodes(h.content, allocator);
+            },
             .paragraph => |nodes| deinitNodes(nodes, allocator),
             .list => |l| deinitNodes(l.items, allocator),
             .list_item => |nodes| deinitNodes(nodes, allocator),

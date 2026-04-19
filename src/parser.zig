@@ -5,6 +5,7 @@ pub const Parser = struct {
     allocator: std.mem.Allocator,
     lines: [][]const u8,
     current: usize,
+    heading_ids: std.StringHashMap(u32),
 
     pub fn init(allocator: std.mem.Allocator, source: []const u8) !Parser {
         // Split into lines
@@ -20,10 +21,13 @@ pub const Parser = struct {
             .allocator = allocator,
             .lines = try lines.toOwnedSlice(allocator),
             .current = 0,
+            .heading_ids = std.StringHashMap(u32).init(allocator),
         };
     }
 
     pub fn deinit(self: *Parser) void {
+        // Don't free heading_id keys here - they're owned by AST nodes
+        self.heading_ids.deinit();
         self.allocator.free(self.lines);
     }
 
@@ -143,11 +147,63 @@ pub const Parser = struct {
 
         // Parse inline elements in heading
         const inline_nodes = try self.parseInline(content);
+        
+        // Generate ID from heading text
+        const id = try self.generateHeadingId(inline_nodes);
 
         return .{ .heading = .{
             .level = level,
+            .id = id,
             .content = inline_nodes,
         } };
+    }
+    
+    fn generateHeadingId(self: *Parser, content: []const ast.Node) !?[]const u8 {
+        // Extract plain text from inline content
+        var text_buf: std.ArrayList(u8) = .empty;
+        defer text_buf.deinit(self.allocator);
+        
+        for (content) |node| {
+            try self.extractText(node, &text_buf);
+        }
+        
+        const text = std.mem.trim(u8, text_buf.items, " \t");
+        if (text.len == 0) return null;
+        
+        // Slugify the text
+        const slug = try slugify(self.allocator, text);
+        
+        // Check for duplicates and append number if needed
+        var unique_slug = try self.allocator.dupe(u8, slug);
+        defer self.allocator.free(slug);
+        
+        var counter: u32 = 1;
+        while (self.heading_ids.get(unique_slug)) |_| {
+            self.allocator.free(unique_slug);
+            const new_slug = try std.fmt.allocPrint(self.allocator, "{s}-{d}", .{ slug, counter });
+            unique_slug = new_slug;
+            counter += 1;
+        }
+        
+        // Store in hashmap to track usage
+        try self.heading_ids.put(unique_slug, counter);
+        
+        return unique_slug;
+    }
+    
+    fn extractText(self: *Parser, node: ast.Node, buf: *std.ArrayList(u8)) !void {
+        switch (node) {
+            .text => |s| try buf.appendSlice(self.allocator, s),
+            .bold => |b| {
+                for (b) |n| try self.extractText(n, buf);
+            },
+            .italic => |i| {
+                for (i) |n| try self.extractText(n, buf);
+            },
+            .code => |s| try buf.appendSlice(self.allocator, s),
+            .link => |l| try buf.appendSlice(self.allocator, l.text),
+            else => {},
+        }
     }
 
     fn parseCodeBlock(self: *Parser) !?ast.Node {
@@ -649,6 +705,42 @@ fn transformLinkUrl(allocator: std.mem.Allocator, url: []const u8) ![]const u8 {
         @memcpy(result[1..], without_prefix);
         return result;
     }
+}
+
+fn slugify(allocator: std.mem.Allocator, text: []const u8) ![]const u8 {
+    var result: std.ArrayList(u8) = .empty;
+    defer result.deinit(allocator);
+    
+    var prev_dash = true; // Start true to avoid leading dashes
+    
+    for (text) |c| {
+        var lower_c = c;
+        // Convert to lowercase
+        if (c >= 'A' and c <= 'Z') {
+            lower_c = c - 'A' + 'a';
+        }
+        
+        // Keep alphanumeric and spaces
+        if ((lower_c >= 'a' and lower_c <= 'z') or 
+            (lower_c >= '0' and lower_c <= '9')) {
+            try result.append(allocator, lower_c);
+            prev_dash = false;
+        } else if (lower_c == ' ' or lower_c == '-' or lower_c == '_') {
+            // Convert spaces to dashes, but avoid consecutive dashes
+            if (!prev_dash) {
+                try result.append(allocator, '-');
+                prev_dash = true;
+            }
+        }
+        // Skip other characters (punctuation, etc.)
+    }
+    
+    // Remove trailing dash
+    if (result.items.len > 0 and result.items[result.items.len - 1] == '-') {
+        _ = result.pop();
+    }
+    
+    return try result.toOwnedSlice(allocator);
 }
 
 pub fn parse(allocator: std.mem.Allocator, source: []const u8) !ast.Document {

@@ -1,6 +1,12 @@
 const std = @import("std");
 const ast = @import("ast.zig");
 
+const TocEntry = struct {
+    level: u8,
+    id: ?[]const u8,
+    text: []const u8,
+};
+
 pub const Generator = struct {
     allocator: std.mem.Allocator,
     output: std.ArrayList(u8),
@@ -17,6 +23,27 @@ pub const Generator = struct {
     }
 
     pub fn generate(self: *Generator, document: ast.Document) ![]const u8 {
+        // Collect headings for TOC
+        var toc_entries: std.ArrayList(TocEntry) = .empty;
+        defer {
+            for (toc_entries.items) |entry| {
+                self.allocator.free(entry.text);
+            }
+            toc_entries.deinit(self.allocator);
+        }
+        
+        for (document.content) |node| {
+            if (node == .heading and node.heading.level <= 3) {
+                const heading = node.heading;
+                const text = try self.extractText(heading.content);
+                try toc_entries.append(self.allocator, .{
+                    .level = heading.level,
+                    .id = heading.id,
+                    .text = text,
+                });
+            }
+        }
+        
         // Imports
         try self.output.appendSlice(self.allocator, "const mer = @import(\"mer\");\n");
         try self.output.appendSlice(self.allocator, "const h = mer.h;\n\n");
@@ -33,38 +60,60 @@ pub const Generator = struct {
         try self.output.appendSlice(self.allocator, "    return mer.render(req.allocator, page_node);\n");
         try self.output.appendSlice(self.allocator, "}\n\n");
         
+        // Enable static site generation for this page
+        try self.output.appendSlice(self.allocator, "pub const prerender = true;\n\n");
+        
         // Page function
         try self.output.appendSlice(self.allocator, "fn page() h.Node {\n");
-        try self.output.appendSlice(self.allocator, "    return h.div(.{ .class = \"page\" }, .{\n");
+        try self.output.appendSlice(self.allocator, "    return h.div(.{ .class = \"page-wrapper\" }, .{\n");
+        
+        // Generate TOC if we have entries
+        if (toc_entries.items.len > 0) {
+            try self.output.appendSlice(self.allocator, "        h.nav(.{ .class = \"toc\" }, .{\n");
+            try self.output.appendSlice(self.allocator, "            h.div(.{ .class = \"toc-header\" }, \"On this page\"),\n");
+            try self.output.appendSlice(self.allocator, "            h.ul(.{}, .{\n");
+            
+            for (toc_entries.items) |entry| {
+                if (entry.id) |id| {
+                    const href = try std.fmt.allocPrint(self.allocator, "#{s}", .{id});
+                    defer self.allocator.free(href);
+                    
+                    const level_class = switch (entry.level) {
+                        1 => "toc-h1",
+                        2 => "toc-h2",
+                        3 => "toc-h3",
+                        else => "toc-item",
+                    };
+                    
+                    try self.output.appendSlice(self.allocator, "                h.li(.{ .class = \"");
+                    try self.output.appendSlice(self.allocator, level_class);
+                    try self.output.appendSlice(self.allocator, "\" }, .{h.a(.{ .href = \"");
+                    try self.writeEscaped(href);
+                    try self.output.appendSlice(self.allocator, "\" }, \"");
+                    try self.writeEscaped(entry.text);
+                    try self.output.appendSlice(self.allocator, "\")}),\n");
+                }
+            }
+            
+            try self.output.appendSlice(self.allocator, "            }),\n");
+            try self.output.appendSlice(self.allocator, "        }),\n");
+        }
+        
+        // Content wrapper
+        try self.output.appendSlice(self.allocator, "        h.div(.{ .class = \"page-content\" }, .{\n");
         
         // Generate document content
         for (document.content) |node| {
-            try self.generateNode(node, 2);
+            try self.generateNode(node, 3);
         }
         
+        try self.output.appendSlice(self.allocator, "        }),\n");
         try self.output.appendSlice(self.allocator, "    });\n");
         try self.output.appendSlice(self.allocator, "}\n");
 
         return try self.output.toOwnedSlice(self.allocator);
     }
-
-    fn generateMeta(self: *Generator, meta: ast.Meta) !void {
-        try self.output.appendSlice(self.allocator, "pub const meta: mer.Meta = .{\n");
-        if (meta.title) |title| {
-            try self.output.appendSlice(self.allocator, "    .title = \"");
-            try self.writeEscaped(title);
-            try self.output.appendSlice(self.allocator, "\",\n");
-        } else {
-            try self.output.appendSlice(self.allocator, "    .title = \"Untitled\",\n");
-        }
-        if (meta.description) |desc| {
-            try self.output.appendSlice(self.allocator, "    .description = \"");
-            try self.writeEscaped(desc);
-            try self.output.appendSlice(self.allocator, "\",\n");
-        }
-        try self.output.appendSlice(self.allocator, "};\n");
-    }
-
+    
     fn generateNode(self: *Generator, node: ast.Node, depth: usize) !void {
         try self.writeIndent(depth);
 
@@ -86,9 +135,19 @@ pub const Generator = struct {
                 };
                 try self.output.appendSlice(self.allocator, "h.");
                 try self.output.appendSlice(self.allocator, tag);
-                try self.output.appendSlice(self.allocator, "(.{ .class = \"");
-                try self.output.appendSlice(self.allocator, class);
-                try self.output.appendSlice(self.allocator, "\" }, ");
+                
+                // Generate attributes with class and optional id
+                if (h.id) |id| {
+                    try self.output.appendSlice(self.allocator, "(.{ .class = \"");
+                    try self.output.appendSlice(self.allocator, class);
+                    try self.output.appendSlice(self.allocator, "\", .id = \"");
+                    try self.writeEscaped(id);
+                    try self.output.appendSlice(self.allocator, "\" }, ");
+                } else {
+                    try self.output.appendSlice(self.allocator, "(.{ .class = \"");
+                    try self.output.appendSlice(self.allocator, class);
+                    try self.output.appendSlice(self.allocator, "\" }, ");
+                }
                 
                 // For simple single-text headings
                 if (h.content.len == 1 and h.content[0] == .text) {
@@ -185,6 +244,49 @@ pub const Generator = struct {
                 try self.writeIndent(depth);
                 try self.output.appendSlice(self.allocator, "}),\n");
             },
+            else => {},
+        }
+    }
+    
+    fn generateMeta(self: *Generator, meta: ast.Meta) !void {
+        try self.output.appendSlice(self.allocator, "pub const meta: mer.Meta = .{\n");
+        if (meta.title) |title| {
+            try self.output.appendSlice(self.allocator, "    .title = \"");
+            try self.writeEscaped(title);
+            try self.output.appendSlice(self.allocator, "\",\n");
+        } else {
+            try self.output.appendSlice(self.allocator, "    .title = \"Untitled\",\n");
+        }
+        if (meta.description) |desc| {
+            try self.output.appendSlice(self.allocator, "    .description = \"");
+            try self.writeEscaped(desc);
+            try self.output.appendSlice(self.allocator, "\",\n");
+        }
+        try self.output.appendSlice(self.allocator, "};\n");
+    }
+    
+    fn extractText(self: *Generator, nodes: []const ast.Node) ![]const u8 {
+        var result: std.ArrayList(u8) = .empty;
+        errdefer result.deinit(self.allocator);
+        
+        for (nodes) |node| {
+            try self.appendText(node, &result);
+        }
+        
+        return try result.toOwnedSlice(self.allocator);
+    }
+    
+    fn appendText(self: *Generator, node: ast.Node, buf: *std.ArrayList(u8)) !void {
+        switch (node) {
+            .text => |s| try buf.appendSlice(self.allocator, s),
+            .bold => |b| {
+                for (b) |n| try self.appendText(n, buf);
+            },
+            .italic => |i| {
+                for (i) |n| try self.appendText(n, buf);
+            },
+            .code => |s| try buf.appendSlice(self.allocator, s),
+            .link => |l| try buf.appendSlice(self.allocator, l.text),
             else => {},
         }
     }

@@ -120,6 +120,43 @@ Your content here...
 | `nuri dev`         | Watch, rebuild, recompile, and serve on `:3000` |
 | `nuri help`        | Show help                                       |
 
+## Deployment
+
+### Static Site (Cloudflare Pages, Netlify, etc.)
+
+```bash
+nuri build
+zig build prod    # Outputs static HTML to dist/
+```
+
+Upload the `dist/` folder to any static host.
+
+### Server (VPS, Fly.io, etc.)
+
+```bash
+nuri build
+zig build -Doptimize=ReleaseFast
+# Deploy zig-out/bin/nuri-site binary
+```
+
+## Agent Skill
+
+This repository includes a Vercel Agent Skill for AI assistants:
+
+```bash
+# Install the skill
+npx skills add https://github.com/ivanleomk/nuri/tree/main/nuri
+```
+
+The skill is located at `nuri/SKILL.md` and provides:
+- Project structure patterns
+- File-based routing conventions
+- Development workflows
+- Deployment configurations
+- Code generation patterns
+
+Installs to `~/.skills/` and works with Claude Code, Vercel Agent, and other AI tools that support the [Agent Skills standard](https://agentskills.io/specification).
+
 ## Requirements
 
 - [Zig 0.16+](https://ziglang.org/download/) (for building generated projects)
