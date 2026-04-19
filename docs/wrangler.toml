@@ -1,5 +1,7 @@
 # Cloudflare Workers configuration for nuri docs site
-# Deploy from the docs/ directory: cd docs && npx wrangler deploy
+# Note: WASM must be pre-built locally since Cloudflare Pages doesn't have Zig
+# Build locally: cd docs && zig build worker
+# Then deploy: npx wrangler deploy
 
 name = "nuri-docs"
 main = "worker/index.js"
@@ -8,10 +10,6 @@ compatibility_date = "2024-12-01"
 # Static assets (CSS, images, etc.)
 [assets]
 directory = "public"
-
-# Build WASM before deploying
-[build]
-command = "zig build worker"
 
 # Optional: Add custom domain
 # routes = [
