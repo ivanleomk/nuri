@@ -987,20 +987,30 @@ fn cmdDev(init: std.process.Init) !void {
 
     std.debug.print("\n🌐 Compiling and starting server...\n", .{});
     std.debug.print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n", .{});
-    std.debug.print("📁 Watching content/ directory for changes...\n", .{});
+    std.debug.print("📁 Watching content/ and public/ directories for changes...\n", .{});
     std.debug.print("Press Ctrl+C to stop\n\n", .{});
 
-    // Set up file watcher
-    var last_mtimes = std.StringHashMap(std.Io.Timestamp).init(allocator);
+    // Set up file watchers for both content and public directories
+    var content_mtimes = std.StringHashMap(std.Io.Timestamp).init(allocator);
     defer {
-        var it = last_mtimes.keyIterator();
+        var it = content_mtimes.keyIterator();
         while (it.next()) |key| {
             allocator.free(key.*);
         }
-        last_mtimes.deinit();
+        content_mtimes.deinit();
     }
 
-    try scanDirectory(io, allocator, "content", &last_mtimes);
+    var public_mtimes = std.StringHashMap(std.Io.Timestamp).init(allocator);
+    defer {
+        var it = public_mtimes.keyIterator();
+        while (it.next()) |key| {
+            allocator.free(key.*);
+        }
+        public_mtimes.deinit();
+    }
+
+    try scanDirectoryWithExt(io, allocator, "content", ".md", &content_mtimes);
+    try scanDirectoryWithExt(io, allocator, "public", null, &public_mtimes);
 
     // Server process (runs zig-out/bin/nuri-site directly)
     var server_child: ?std.process.Child = null;
@@ -1055,49 +1065,82 @@ fn cmdDev(init: std.process.Init) !void {
     while (true) {
         try std.Io.sleep(io, .fromNanoseconds(1_000_000_000), .awake);
 
-        var current_mtimes = std.StringHashMap(std.Io.Timestamp).init(allocator);
+        var current_content_mtimes = std.StringHashMap(std.Io.Timestamp).init(allocator);
         defer {
-            var it = current_mtimes.keyIterator();
+            var it = current_content_mtimes.keyIterator();
             while (it.next()) |key| {
                 allocator.free(key.*);
             }
-            current_mtimes.deinit();
+            current_content_mtimes.deinit();
         }
 
-        try scanDirectory(io, allocator, "content", &current_mtimes);
+        var current_public_mtimes = std.StringHashMap(std.Io.Timestamp).init(allocator);
+        defer {
+            var it = current_public_mtimes.keyIterator();
+            while (it.next()) |key| {
+                allocator.free(key.*);
+            }
+            current_public_mtimes.deinit();
+        }
 
-        var changed = false;
-        var it = current_mtimes.iterator();
+        try scanDirectoryWithExt(io, allocator, "content", ".md", &current_content_mtimes);
+        try scanDirectoryWithExt(io, allocator, "public", null, &current_public_mtimes);
+
+        var content_changed = false;
+        var public_changed = false;
+
+        // Check content directory for changes
+        var it = current_content_mtimes.iterator();
         while (it.next()) |entry| {
             const path = entry.key_ptr.*;
             const mtime = entry.value_ptr.*;
 
-            const prev_mtime = last_mtimes.get(path);
+            const prev_mtime = content_mtimes.get(path);
             if (prev_mtime == null or !std.meta.eql(prev_mtime.?, mtime)) {
-                changed = true;
-                std.debug.print("📝 Change detected: {s}\n", .{path});
+                content_changed = true;
+                std.debug.print("📝 Content change: {s}\n", .{path});
             }
         }
 
-        // Also detect deleted files
-        var deleted = false;
-        var old_check = last_mtimes.iterator();
+        // Check for deleted content files
+        var old_check = content_mtimes.iterator();
         while (old_check.next()) |entry| {
-            if (!current_mtimes.contains(entry.key_ptr.*)) {
-                changed = true;
-                deleted = true;
-                std.debug.print("🗑️  Deleted: {s}\n", .{entry.key_ptr.*});
+            if (!current_content_mtimes.contains(entry.key_ptr.*)) {
+                content_changed = true;
+                std.debug.print("🗑️  Content deleted: {s}\n", .{entry.key_ptr.*});
             }
         }
 
-        if (changed) {
-            std.debug.print("🔄 Rebuilding...\n", .{});
+        // Check public directory for changes
+        it = current_public_mtimes.iterator();
+        while (it.next()) |entry| {
+            const path = entry.key_ptr.*;
+            const mtime = entry.value_ptr.*;
+
+            const prev_mtime = public_mtimes.get(path);
+            if (prev_mtime == null or !std.meta.eql(prev_mtime.?, mtime)) {
+                public_changed = true;
+                std.debug.print("🎨 Static file change: {s}\n", .{path});
+            }
+        }
+
+        // Check for deleted public files
+        old_check = public_mtimes.iterator();
+        while (old_check.next()) |entry| {
+            if (!current_public_mtimes.contains(entry.key_ptr.*)) {
+                public_changed = true;
+                std.debug.print("🗑️  Static file deleted: {s}\n", .{entry.key_ptr.*});
+            }
+        }
+
+        // Handle content changes (full rebuild + restart)
+        if (content_changed) {
+            std.debug.print("🔄 Rebuilding markdown...\n", .{});
             cmdBuild(init) catch |err| {
                 std.debug.print("❌ Build failed: {any}\n", .{err});
                 continue;
             };
             
-            // Recompile + restart server to pick up new routes
             compileProject(io) catch |err| {
                 std.debug.print("❌ Compile failed: {any}\n", .{err});
                 continue;
@@ -1107,16 +1150,39 @@ fn cmdDev(init: std.process.Init) !void {
                 continue;
             };
 
-            var old_it = last_mtimes.keyIterator();
+            // Update content state
+            var old_it = content_mtimes.keyIterator();
             while (old_it.next()) |key| {
                 allocator.free(key.*);
             }
-            last_mtimes.clearRetainingCapacity();
+            content_mtimes.clearRetainingCapacity();
 
-            var new_it = current_mtimes.iterator();
+            var new_it = current_content_mtimes.iterator();
             while (new_it.next()) |entry| {
                 const key_copy = try allocator.dupe(u8, entry.key_ptr.*);
-                try last_mtimes.put(key_copy, entry.value_ptr.*);
+                try content_mtimes.put(key_copy, entry.value_ptr.*);
+            }
+        }
+
+        // Handle public changes (just restart to clear in-memory cache)
+        if (public_changed) {
+            std.debug.print("🔄 Restarting server to reload static files...\n", .{});
+            restartServer(io, &server_child) catch |err| {
+                std.debug.print("❌ Server restart failed: {any}\n", .{err});
+                continue;
+            };
+
+            // Update public state
+            var old_it = public_mtimes.keyIterator();
+            while (old_it.next()) |key| {
+                allocator.free(key.*);
+            }
+            public_mtimes.clearRetainingCapacity();
+
+            var new_it = current_public_mtimes.iterator();
+            while (new_it.next()) |entry| {
+                const key_copy = try allocator.dupe(u8, entry.key_ptr.*);
+                try public_mtimes.put(key_copy, entry.value_ptr.*);
             }
         }
     }
@@ -1134,6 +1200,37 @@ fn scanDirectory(io: std.Io, allocator: std.mem.Allocator, dir_path: []const u8,
     while (walker.next(io) catch return) |entry| {
         if (entry.kind != .file) continue;
         if (!std.mem.endsWith(u8, entry.basename, ".md")) continue;
+
+        const full_path = std.fs.path.join(allocator, &.{ dir_path, entry.path }) catch continue;
+        defer allocator.free(full_path);
+        
+        const stat = cwd.statFile(io, full_path, .{}) catch continue;
+
+        const key = allocator.dupe(u8, full_path) catch continue;
+        mtimes.put(key, stat.mtime) catch {
+            allocator.free(key);
+            continue;
+        };
+    }
+}
+
+/// Scan directory for files, optionally filtering by extension (null = all files)
+fn scanDirectoryWithExt(io: std.Io, allocator: std.mem.Allocator, dir_path: []const u8, extension: ?[]const u8, mtimes: *std.StringHashMap(std.Io.Timestamp)) !void {
+    const cwd = std.Io.Dir.cwd();
+    
+    var dir = cwd.openDir(io, dir_path, .{ .iterate = true }) catch return;
+    defer dir.close(io);
+
+    var walker = try dir.walk(allocator);
+    defer walker.deinit();
+
+    while (walker.next(io) catch return) |entry| {
+        if (entry.kind != .file) continue;
+        
+        // Filter by extension if specified
+        if (extension) |ext| {
+            if (!std.mem.endsWith(u8, entry.basename, ext)) continue;
+        }
 
         const full_path = std.fs.path.join(allocator, &.{ dir_path, entry.path }) catch continue;
         defer allocator.free(full_path);
