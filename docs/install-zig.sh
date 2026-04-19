@@ -1,5 +1,5 @@
 #!/bin/bash
-# Install Zig for Cloudflare Pages build
+# Install Zig for Cloudflare Pages build and run the build
 
 set -e
 
@@ -47,13 +47,8 @@ if [ ! -f "$ZIG_DIR/zig" ]; then
     rm zig.tar.xz
 fi
 
-# Add to PATH
-export PATH="$ZIG_DIR:$PATH"
+# Now run the build using the full path
+echo "Building WASM bundle..."
+$ZIG_DIR/zig build worker
 
-# Verify installation
-echo "Zig location:"
-which zig
-echo "Zig version:"
-zig version
-
-echo "Zig installed successfully!"
+echo "Build complete!"

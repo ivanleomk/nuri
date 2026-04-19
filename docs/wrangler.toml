@@ -9,10 +9,9 @@ compatibility_date = "2024-12-01"
 [assets]
 directory = "public"
 
-# Build command - installs Zig if needed, then builds
-# Note: Use full path to Zig since PATH doesn't persist between commands
+# Build command - installs Zig and builds WASM in one script
 [build]
-command = "chmod +x install-zig.sh && ./install-zig.sh && $HOME/.zig/zig build worker"
+command = "chmod +x install-zig.sh && ./install-zig.sh"
 
 # Optional: Add custom domain
 # routes = [
