@@ -46,6 +46,9 @@ fn page() h.Node {
             h.p(.{}, .{
                 h.text("Write your content in Markdown, and Nuri generates type-safe Zig code with routing, hot reload, and semantic HTML — all powered by merjs. Deploy to Cloudflare Workers, VPS, or anywhere."),
             }),
+            h.p(.{}, .{
+                h.text("🚀 Successfully deployed via GitHub Actions!"),
+            }),
             h.h2(.{ .class = "subtitle", .id = "installation" }, "Installation"),
             h.h3(.{ .class = "heading", .id = "pre-built-binary-macos-apple-silicon" }, "Pre-built Binary (macOS Apple Silicon)"),
             h.pre(.{}, .{h.code(.{}, "curl -L https://github.com/ivanleomk/nuri/releases/latest/download/nuri-aarch64-macos -o nuri\nchmod +x nuri\nsudo mv nuri /usr/local/bin/")}),
