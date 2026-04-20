@@ -9,7 +9,16 @@ const app_deployment_cloudflare = @import("app/deployment/cloudflare");
 pub const routes: []const Route = &.{
     .{ .path = "/", .render = app_index.render, .render_stream = if (@hasDecl(app_index, "renderStream")) app_index.renderStream else null, .meta = if (@hasDecl(app_index, "meta")) app_index.meta else .{}, .prerender = if (@hasDecl(app_index, "prerender")) app_index.prerender else false },
     .{ .path = "/deployment/cloudflare", .render = app_deployment_cloudflare.render, .render_stream = if (@hasDecl(app_deployment_cloudflare, "renderStream")) app_deployment_cloudflare.renderStream else null, .meta = if (@hasDecl(app_deployment_cloudflare, "meta")) app_deployment_cloudflare.meta else .{}, .prerender = if (@hasDecl(app_deployment_cloudflare, "prerender")) app_deployment_cloudflare.prerender else false },
+    .{ .path = "/.well-known/llms.txt", .render = llmsTxtRender, .meta = .{ .title = "LLMs.txt", .description = "Available routes" }, .prerender = false },
 };
+
+fn llmsTxtRender(req: mer.Request) mer.Response {
+    const content = "# Available Routes\n\n"
+                      ++ "- /\n"
+                      ++ "- /deployment/cloudflare\n"
+                      ++ "";
+    return mer.Response.plain(req.allocator, content);
+}
 
 /// Sidebar HTML for route navigation
 pub fn sidebarHtml(current_path: []const u8) []const u8 {
@@ -18,10 +27,10 @@ pub fn sidebarHtml(current_path: []const u8) []const u8 {
 }
 
 fn sidebarForPath(path: []const u8) []const u8 {
-    if (std.mem.eql(u8, path, "/")) return "<nav class=\"route-sidebar\">\n  <a href=\"/\" class=\"route-sidebar-header\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"home-icon\"><path d=\"m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"></path><polyline points=\"9 22 9 12 15 12 15 22\"></polyline></svg>Nuri</a>\n  <ul class=\"route-tree\">\n  <li>\n    <span class=\"section-header\">Deployment</span>\n    <ul class=\"route-children\">\n    <li>\n      <a href=\"/deployment/cloudflare\">Cloudflare</a>\n    </li>\n    </ul>\n  </li>\n  </ul>\n</nav>\n";
-    if (std.mem.eql(u8, path, "/deployment/cloudflare")) return "<nav class=\"route-sidebar\">\n  <a href=\"/\" class=\"route-sidebar-header\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"home-icon\"><path d=\"m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"></path><polyline points=\"9 22 9 12 15 12 15 22\"></polyline></svg>Nuri</a>\n  <ul class=\"route-tree\">\n  <li class=\"expanded\">\n    <span class=\"section-header\">Deployment</span>\n    <ul class=\"route-children\">\n    <li class=\"active\">\n      <a href=\"/deployment/cloudflare\" class=\"active\">Cloudflare</a>\n    </li>\n    </ul>\n  </li>\n  </ul>\n</nav>\n";
+    if (std.mem.eql(u8, path, "/")) return "<nav class=\"route-sidebar\">\n  <a href=\"/\" class=\"route-sidebar-header\">Nuri</a>\n  <ul class=\"route-tree\">\n  <li>\n    <span class=\"section-header\">Deployment</span>\n    <ul class=\"route-children\">\n    <li>\n      <a href=\"/deployment/cloudflare\">Cloudflare</a>\n    </li>\n    </ul>\n  </li>\n  </ul>\n</nav>\n";
+    if (std.mem.eql(u8, path, "/deployment/cloudflare")) return "<nav class=\"route-sidebar\">\n  <a href=\"/\" class=\"route-sidebar-header\">Nuri</a>\n  <ul class=\"route-tree\">\n  <li class=\"expanded\">\n    <span class=\"section-header\">Deployment</span>\n    <ul class=\"route-children\">\n    <li class=\"active\">\n      <a href=\"/deployment/cloudflare\" class=\"active\">Cloudflare</a>\n    </li>\n    </ul>\n  </li>\n  </ul>\n</nav>\n";
     // Default: root sidebar
-    return "<nav class=\"route-sidebar\">\n  <a href=\"/\" class=\"route-sidebar-header\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"home-icon\"><path d=\"m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"></path><polyline points=\"9 22 9 12 15 12 15 22\"></polyline></svg>Nuri</a>\n  <ul class=\"route-tree\">\n  <li>\n    <span class=\"section-header\">Deployment</span>\n    <ul class=\"route-children\">\n    <li>\n      <a href=\"/deployment/cloudflare\">Cloudflare</a>\n    </li>\n    </ul>\n  </li>\n  </ul>\n</nav>\n";
+    return "<nav class=\"route-sidebar\">\n  <a href=\"/\" class=\"route-sidebar-header\">Nuri</a>\n  <ul class=\"route-tree\">\n  <li>\n    <span class=\"section-header\">Deployment</span>\n    <ul class=\"route-children\">\n    <li>\n      <a href=\"/deployment/cloudflare\">Cloudflare</a>\n    </li>\n    </ul>\n  </li>\n  </ul>\n</nav>\n";
 }
 
 const app_layout = @import("app/layout");

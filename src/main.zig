@@ -1070,7 +1070,23 @@ fn generateRoutes(init: std.process.Init) !void {
             try buf.print(allocator, "    .{{ .path = \"{s}\", .render = {s}.render, .render_stream = if (@hasDecl({s}, \"renderStream\")) {s}.renderStream else null, .meta = if (@hasDecl({s}, \"meta\")) {s}.meta else .{{}}, .prerender = if (@hasDecl({s}, \"prerender\")) {s}.prerender else false }},\n", .{ url, ident, ident, ident, ident, ident, ident, ident });
         }
     }
+    // Add llms.txt route for Cloudflare Workers
+    try buf.appendSlice(allocator, "    .{ .path = \"/.well-known/llms.txt\", .render = llmsTxtRender, .meta = .{ .title = \"LLMs.txt\", .description = \"Available routes\" }, .prerender = false },\n");
     try buf.appendSlice(allocator, "};\n\n");
+    
+    // Generate llms.txt render function
+    try buf.appendSlice(allocator, "fn llmsTxtRender(req: mer.Request) mer.Response {\n");
+    try buf.appendSlice(allocator, "    const content = \"# Available Routes\\n\\n\"\n");
+    for (routes_list.items) |node| {
+        if (node.file_path) |path| {
+            const url = try route_tree.toUrl(allocator, path);
+            defer allocator.free(url);
+            try buf.print(allocator, "                      ++ \"- {s}\\n\"\n", .{url});
+        }
+    }
+    try buf.appendSlice(allocator, "                      ++ \"\";\n");
+    try buf.appendSlice(allocator, "    return mer.Response.plain(req.allocator, content);\n");
+    try buf.appendSlice(allocator, "}\n\n");
 
     // Generate sidebar HTML for each route with proper active state
     try buf.appendSlice(allocator, "/// Sidebar HTML for route navigation\n");
