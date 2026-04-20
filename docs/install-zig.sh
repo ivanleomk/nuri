@@ -12,7 +12,7 @@ if [ ! -f "$ZIG_DIR/zig" ]; then
     mkdir -p "$ZIG_DIR"
     cd "$ZIG_DIR"
     
-    curl -L "https://ziglang.org/download/${ZIG_VERSION}/zig-linux-x86_64-${ZIG_VERSION}.tar.xz" -o zig.tar.xz
+    curl -L "https://ziglang.org/download/${ZIG_VERSION}/zig-x86_64-linux-${ZIG_VERSION}.tar.xz" -o zig.tar.xz
     tar -xf zig.tar.xz --strip-components=1
     rm zig.tar.xz
 fi

@@ -15,7 +15,7 @@ pub const routes: []const Route = &.{
 
 fn llmsTxtRender(_req: mer.Request) mer.Response {
     _ = _req;
-    const content = "# Nuri\n\n> A static site generator\n\n## Pages\n\n- [Nuri](/): A static site generator that converts Markdown to merjs pages\n- [Deploying to Cloudflare](/deployment/cloudflare): Deploy your Nuri site to Cloudflare Pages\n";
+    const content = "# Nuri\n\n> A static site generator\n\n## Pages\n\n- [Nuri](/): A static site generator that converts Markdown to merjs pages\n- [Deploying to Cloudflare](/deployment/cloudflare): Deploy your Nuri site to Cloudflare Pages\n\n> **Note:** Append `?format=md` to any page URL to get the raw markdown source (e.g., `/?format=md`). Useful for LLM context or programmatic access.\n";
     return mer.text(.ok, content);
 }
 
