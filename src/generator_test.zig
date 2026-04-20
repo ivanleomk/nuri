@@ -44,7 +44,7 @@ test "generate heading" {
     heading_content[0] = .{ .text = text };
     
     var content = try allocator.alloc(ast.Node, 1);
-    content[0] = .{ .heading = .{ .level = 1, .content = heading_content } };
+    content[0] = .{ .heading = .{ .level = 1, .id = null, .content = heading_content } };
     
     const doc = ast.Document{
         .meta = .{ .title = null, .description = null },

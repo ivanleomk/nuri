@@ -1,12 +1,12 @@
 .{
     .name = .nuri_site,
-    .fingerprint = 0x3050c01e7e71b189,
+    .fingerprint = 0x3050c01eb5877c19,
     .version = "0.1.0",
     .minimum_zig_version = "0.16.0",
     .dependencies = .{
         .merjs = .{
-            .url = "git+https://github.com/ivanleomk/merjs.git#feat/0.16.0-migration",
-            .hash = "merjs-0.2.5-qL9LkotgYACnQMkzrlfAQG2r4l4gYXCsh6xcW7E_UCDb",
+            .url = "git+https://github.com/ivanleomk/merjs.git#93519ad5fdfbd2350a1ca051a391c3dee60b0b02",
+            .hash = "merjs-0.2.5-qL9LkovAYADBMdEWeU1UdlopMdgX_cYo8BTsMjRBVm0Q",
         },
     },
     .paths = .{

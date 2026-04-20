@@ -2,13 +2,23 @@
 
 const Route = @import("mer").Route;
 
-const app_deployment = @import("app/deployment");
 const app_index = @import("app/index");
+const app_deployment_cloudflare = @import("app/deployment/cloudflare");
+const app_deployment_index = @import("app/deployment/index");
 
 pub const routes: []const Route = &.{
-    .{ .path = "/deployment", .render = app_deployment.render, .render_stream = if (@hasDecl(app_deployment, "renderStream")) app_deployment.renderStream else null, .meta = if (@hasDecl(app_deployment, "meta")) app_deployment.meta else .{}, .prerender = if (@hasDecl(app_deployment, "prerender")) app_deployment.prerender else false },
     .{ .path = "/", .render = app_index.render, .render_stream = if (@hasDecl(app_index, "renderStream")) app_index.renderStream else null, .meta = if (@hasDecl(app_index, "meta")) app_index.meta else .{}, .prerender = if (@hasDecl(app_index, "prerender")) app_index.prerender else false },
+    .{ .path = "/deployment/cloudflare", .render = app_deployment_cloudflare.render, .render_stream = if (@hasDecl(app_deployment_cloudflare, "renderStream")) app_deployment_cloudflare.renderStream else null, .meta = if (@hasDecl(app_deployment_cloudflare, "meta")) app_deployment_cloudflare.meta else .{}, .prerender = if (@hasDecl(app_deployment_cloudflare, "prerender")) app_deployment_cloudflare.prerender else false },
+    .{ .path = "/deployment/index", .render = app_deployment_index.render, .render_stream = if (@hasDecl(app_deployment_index, "renderStream")) app_deployment_index.renderStream else null, .meta = if (@hasDecl(app_deployment_index, "meta")) app_deployment_index.meta else .{}, .prerender = if (@hasDecl(app_deployment_index, "prerender")) app_deployment_index.prerender else false },
 };
+
+/// Sidebar HTML for route navigation
+pub fn sidebarHtml(current_path: []const u8) []const u8 {
+    _ = current_path;
+    return sidebar_html_root;
+}
+
+const sidebar_html_root: []const u8 = "<nav class=\"route-sidebar\">\n  <div class=\"route-sidebar-header\">Documentation</div>\n  <ul class=\"route-tree\">\n  <li>\n    <a href=\"/\" class=\"active\">Home</a>\n  </li>\n  <li>\n    <span class=\"section-header\">Deployment</span>\n    <ul class=\"route-children\">\n    <li>\n      <a href=\"/deployment/cloudflare\">Cloudflare</a>\n    </li>\n    <li>\n      <a href=\"/deployment/index\">Home</a>\n    </li>\n    </ul>\n  </li>\n  </ul>\n</nav>\n";
 
 const app_layout = @import("app/layout");
 pub const layout = app_layout.wrap;

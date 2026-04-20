@@ -1,5 +1,6 @@
 const std = @import("std");
 const mer = @import("mer");
+const routes = @import("routes");
 
 pub fn wrap(allocator: std.mem.Allocator, path: []const u8, body: []const u8, meta: mer.Meta) []const u8 {
     const title = if (meta.title.len > 0) meta.title else if (std.mem.eql(u8, path, "/")) "Home" else if (path.len > 1) path[1..] else "Nuri";
@@ -29,13 +30,22 @@ pub fn wrap(allocator: std.mem.Allocator, path: []const u8, body: []const u8, me
         \\</head>
         \\<body>
         \\<div class="layout">
-        \\
+        \\  <aside class="route-sidebar-container">
+        \\    
+    ) catch return body;
+
+    buf.appendSlice(allocator, routes.sidebarHtml(path)) catch return body;
+    
+    buf.appendSlice(allocator,
+        \\  </aside>
+        \\  <main class="main-content">
+        \\    
     ) catch return body;
 
     buf.appendSlice(allocator, body) catch return body;
 
     buf.appendSlice(allocator,
-        \\
+        \\  </main>
         \\</div>
         \\</body>
         \\</html>

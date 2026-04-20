@@ -2,7 +2,7 @@ const mer = @import("mer");
 const h = mer.h;
 
 pub const meta: mer.Meta = .{
-    .title = "Home",
+    .title = "Cloudflare",
 };
 
 const page_node = page();
@@ -24,11 +24,7 @@ fn page() h.Node {
         h.div(.{ .class = "page-content" }, .{
             h.h1(.{ .class = "title", .id = "welcome-to-nuri" }, "Welcome to Nuri"),
             h.p(.{}, .{
-                h.text("This is your first page with "),
-                h.strong(.{}, "bold"),
-                h.text(" and "),
-                h.em(.{}, "italic"),
-                h.text(" text."),
+                h.text("THis is how to deploy stuff"),
             }),
         }),
     });
