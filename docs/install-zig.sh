@@ -1,5 +1,5 @@
 #!/bin/bash
-# Install Zig and build Nuri site for Cloudflare Pages
+# Install Zig and build Nuri WASM binary for Cloudflare Workers
 
 set -e
 
@@ -27,7 +27,7 @@ export PATH="$ZIG_DIR:$PATH"
 
 # Verify and build
 zig version
-echo "Building site..."
-zig build prod
+echo "Building WASM binary for Cloudflare Workers..."
+zig build -Dtarget=wasm32-wasi -Doptimize=ReleaseSmall
 
-echo "Build complete!"
+echo "Build complete! Binary at: zig-out/bin/nuri-site.wasm"

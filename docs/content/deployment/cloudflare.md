@@ -43,10 +43,11 @@ fi
 
 export PATH="$ZIG_DIR:$PATH"
 zig version
-zig build prod
+echo "Building WASM binary for Cloudflare Workers..."
+zig build -Dtarget=wasm32-wasi -Doptimize=ReleaseSmall
 ```
 
-Set this as your build command in Cloudflare Pages: `./install-zig.sh`. The script checks if Zig is already cached (to speed up subsequent builds) and then builds your site to the `dist/` directory.
+Set this as your build command: `./install-zig.sh`. The script builds a WASM binary for Cloudflare Workers deployment.
 
 ## Custom Domain
 
