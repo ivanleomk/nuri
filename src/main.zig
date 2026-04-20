@@ -485,7 +485,7 @@ fn processMarkdownFile(init: std.process.Init, input_path: []const u8, output_pa
     defer doc.deinit(allocator);
 
     // Generate merjs code
-    const output = try generator.generate(allocator, doc);
+    const output = try generator.generate(allocator, doc, content);
     defer allocator.free(output);
 
     // Ensure output directory exists

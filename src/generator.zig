@@ -22,7 +22,7 @@ pub const Generator = struct {
         self.output.deinit(self.allocator);
     }
 
-    pub fn generate(self: *Generator, document: ast.Document) ![]const u8 {
+    pub fn generate(self: *Generator, document: ast.Document, raw_source: []const u8) ![]const u8 {
         // Collect headings for TOC
         var toc_entries: std.ArrayList(TocEntry) = .empty;
         defer {
@@ -45,6 +45,7 @@ pub const Generator = struct {
         }
         
         // Imports
+        try self.output.appendSlice(self.allocator, "const std = @import(\"std\");\n");
         try self.output.appendSlice(self.allocator, "const mer = @import(\"mer\");\n");
         try self.output.appendSlice(self.allocator, "const h = mer.h;\n\n");
         
@@ -55,8 +56,17 @@ pub const Generator = struct {
         // Pre-rendered page node
         try self.output.appendSlice(self.allocator, "const page_node = page();\n\n");
         
+        // Store raw markdown for curlable access
+        try self.output.appendSlice(self.allocator, "const raw_markdown = \"");
+        try self.writeEscaped(raw_source);
+        try self.output.appendSlice(self.allocator, "\";\n\n");
+        
         // Render function
         try self.output.appendSlice(self.allocator, "pub fn render(req: mer.Request) mer.Response {\n");
+        try self.output.appendSlice(self.allocator, "    // Check if client wants raw markdown\n");
+        try self.output.appendSlice(self.allocator, "    if (std.mem.eql(u8, req.queryParam(\"format\") orelse \"\", \"md\")) {\n");
+        try self.output.appendSlice(self.allocator, "        return mer.text(.ok, raw_markdown);\n");
+        try self.output.appendSlice(self.allocator, "    }\n");
         try self.output.appendSlice(self.allocator, "    return mer.render(req.allocator, page_node);\n");
         try self.output.appendSlice(self.allocator, "}\n\n");
         
@@ -352,8 +362,8 @@ pub const Generator = struct {
     }
 };
 
-pub fn generate(allocator: std.mem.Allocator, document: ast.Document) ![]const u8 {
+pub fn generate(allocator: std.mem.Allocator, document: ast.Document, raw_source: []const u8) ![]const u8 {
     var gen = Generator.init(allocator);
     defer gen.deinit();
-    return try gen.generate(document);
+    return try gen.generate(document, raw_source);
 }
