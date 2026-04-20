@@ -303,20 +303,9 @@ pub const RouteTree = struct {
         defer html.deinit(allocator);
         
         try html.appendSlice(allocator, "<nav class=\"route-sidebar\">\n");
-        try html.appendSlice(allocator, "  <div class=\"route-sidebar-header\">Documentation</div>\n");
+        // Header - clickable link to home
+        try html.appendSlice(allocator, "  <a href=\"/\" class=\"route-sidebar-header\">Nuri</a>\n");
         try html.appendSlice(allocator, "  <ul class=\"route-tree\">\n");
-        
-        // Add root/index page if it exists
-        if (self.root.file_path) |_| {
-            const is_root_active = std.mem.eql(u8, current_path, "/");
-            try html.appendSlice(allocator, "  <li>\n");
-            try html.appendSlice(allocator, "    <a href=\"/\"");
-            if (is_root_active) {
-                try html.appendSlice(allocator, " class=\"active\"");
-            }
-            try html.appendSlice(allocator, ">Home</a>\n");
-            try html.appendSlice(allocator, "  </li>\n");
-        }
         
         // Sort children alphabetically
         const CompareContext = struct {
@@ -348,6 +337,10 @@ pub const RouteTree = struct {
         // Check if this node has children
         const has_children = node.children.items.len > 0;
         
+        // Check if this node has an index.md child (for section headers that should be links)
+        const index_child = if (has_children) self.findIndexChild(node) else null;
+        const has_index_child = index_child != null;
+        
         if (node.file_path != null or has_children) {
             // Start list item
             try html.appendSlice(allocator, indent);
@@ -360,28 +353,35 @@ pub const RouteTree = struct {
             }
             try html.appendSlice(allocator, ">\n");
             
-            // Add link if this is a route node (has file)
-            if (node.file_path) |_| {
+            // Add link if this is a route node (has file) or has index.md child
+            if (node.file_path != null or has_index_child) {
                 try html.appendSlice(allocator, indent);
                 try html.appendSlice(allocator, "  <a href=\"");
-                try html.appendSlice(allocator, node.path);
+                
+                // If this node has its own file, use its path; otherwise use index child's path
+                const href_path = if (node.file_path != null) node.path else index_child.?.path;
+                try html.appendSlice(allocator, href_path);
+                
                 try html.appendSlice(allocator, "\"");
                 if (is_active) {
                     try html.appendSlice(allocator, " class=\"active\"");
                 }
                 try html.appendSlice(allocator, ">");
                 
-                // Use "Home" for index, otherwise capitalize first letter
-                const display_name = if (std.mem.eql(u8, node.segment, "index"))
-                    "Home"
-                else
-                    try capitalizeFirst(allocator, node.segment);
-                defer if (!std.mem.eql(u8, node.segment, "index")) allocator.free(display_name);
+                // Root index gets a home icon, otherwise use segment name
+                const is_root_index = std.mem.eql(u8, node.path, "/");
+                if (is_root_index) {
+                    // Lucide-style home icon SVG
+                    try html.appendSlice(allocator, "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"home-icon\"><path d=\"m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"></path><polyline points=\"9 22 9 12 15 12 15 22\"></polyline></svg>");
+                } else {
+                    const display_name = try capitalizeFirst(allocator, node.segment);
+                    defer allocator.free(display_name);
+                    try html.appendSlice(allocator, display_name);
+                }
                 
-                try html.appendSlice(allocator, display_name);
                 try html.appendSlice(allocator, "</a>\n");
             } else {
-                // Section header without link
+                // Section header without link (no index.md)
                 try html.appendSlice(allocator, indent);
                 try html.appendSlice(allocator, "  <span class=\"section-header\">");
                 const display_name = try capitalizeFirst(allocator, node.segment);
@@ -390,7 +390,7 @@ pub const RouteTree = struct {
                 try html.appendSlice(allocator, "</span>\n");
             }
             
-            // Recursively render children
+            // Recursively render children (but skip the index child since we already used it)
             if (has_children) {
                 // Sort children
                 const CompareContext = struct {
@@ -404,7 +404,10 @@ pub const RouteTree = struct {
                 try html.appendSlice(allocator, "  <ul class=\"route-children\">\n");
                 
                 for (node.children.items) |child| {
-                    try self.generateSidebarNodeHtml(child, allocator, current_path, html, depth + 1);
+                    // Skip index nodes - they're represented by the parent link
+                    if (!std.mem.eql(u8, child.segment, "index")) {
+                        try self.generateSidebarNodeHtml(child, allocator, current_path, html, depth + 1);
+                    }
                 }
                 
                 try html.appendSlice(allocator, indent);
@@ -414,6 +417,15 @@ pub const RouteTree = struct {
             try html.appendSlice(allocator, indent);
             try html.appendSlice(allocator, "</li>\n");
         }
+    }
+    
+    fn findIndexChild(_: *RouteTree, node: *RouteNode) ?*RouteNode {
+        for (node.children.items) |child| {
+            if (std.mem.eql(u8, child.segment, "index")) {
+                return child;
+            }
+        }
+        return null;
     }
 };
 
