@@ -29,12 +29,16 @@ set -e
 ZIG_VERSION="0.16.0"
 ZIG_DIR="$HOME/.zig"
 
+# Save original directory
+ORIGINAL_DIR=$(pwd)
+
 if [ ! -f "$ZIG_DIR/zig" ]; then
     mkdir -p "$ZIG_DIR"
     cd "$ZIG_DIR"
     curl -L "https://ziglang.org/download/${ZIG_VERSION}/zig-x86_64-linux-${ZIG_VERSION}.tar.xz" -o zig.tar.xz
     tar -xf zig.tar.xz --strip-components=1
     rm zig.tar.xz
+    cd "$ORIGINAL_DIR"
 fi
 
 export PATH="$ZIG_DIR:$PATH"
