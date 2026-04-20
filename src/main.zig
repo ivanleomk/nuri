@@ -1212,6 +1212,9 @@ fn generateRoutes(init: std.process.Init) !void {
         }
     }
     
+    // Add note about format=md feature
+    try llms_buf.appendSlice(allocator, "\n> **Note:** Append `?format=md` to any page URL to get the raw markdown source (e.g., `/?format=md`). Useful for LLM context or programmatic access.\n");
+    
     // Escape the content for Zig string
     try buf.appendSlice(allocator, "    const content = \"");
     for (llms_buf.items) |c| {

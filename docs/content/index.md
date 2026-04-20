@@ -72,6 +72,20 @@ Your content here...
 
 The title appears in the page's HTML `<title>` tag and the table of contents. The description is used for SEO meta tags. Both are optional but recommended.
 
+## Programmatic Access
+
+Each page supports returning raw markdown via query parameter:
+
+```bash
+# Get HTML (default)
+curl http://localhost:3000/
+
+# Get raw markdown
+curl http://localhost:3000/?format=md
+```
+
+Add `?format=md` to any page URL to retrieve the original markdown source. Returns `text/plain` content type.
+
 ## Deployment
 
 Deploy anywhere that supports static files or Zig binaries. For detailed Cloudflare Pages setup:

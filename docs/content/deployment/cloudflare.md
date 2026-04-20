@@ -49,3 +49,7 @@ Set this as your build command in Cloudflare Pages: `./install-zig.sh`. The scri
 After your site deploys, you can add a custom domain from the Cloudflare Pages dashboard. Click "Custom domains" in your project settings, enter your domain name, and Cloudflare automatically configures the necessary DNS records.
 
 Since Cloudflare manages both your DNS and hosting, the process is seamless. Your site will be available on your custom domain with HTTPS automatically enabled.
+
+## Notes
+
+Currently, Nuri has only been tested on Cloudflare Workers. While it should work on other platforms that support Zig/WASM, your mileage may vary. If you deploy successfully to other platforms, please let us know!
